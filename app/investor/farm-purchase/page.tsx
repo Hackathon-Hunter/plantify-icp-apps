@@ -61,7 +61,7 @@ const FarmPurchase = () => {
     hash: "0x3bc3c1...e4790f90",
     blockNumber: "1,234,567",
     network: "Internet Computer Protocol",
-    totalPaid: "0.432 ETH",
+    totalPaid: "0.432 ICP",
     yourShares: "1% of Harvest",
   };
 
@@ -189,19 +189,19 @@ const FarmPurchase = () => {
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
               <span>NFT Price (1x):</span>
-              <span>{projectData.nftPrice} ETH</span>
+              <span>{projectData.nftPrice} ICP</span>
             </div>
             <div className="flex justify-between">
               <span>Platform Fee (2.5%):</span>
-              <span>{projectData.platformFee} ETH</span>
+              <span>{projectData.platformFee} ICP</span>
             </div>
             <div className="flex justify-between">
               <span>Network Fee:</span>
-              <span>{projectData.networkFee} ETH</span>
+              <span>{projectData.networkFee} ICP</span>
             </div>
             <div className="flex justify-between font-semibold border-t pt-1">
               <span>Total:</span>
-              <span>{projectData.total} ETH</span>
+              <span>{projectData.total} ICP</span>
             </div>
           </div>
         </div>
@@ -275,7 +275,7 @@ const FarmPurchase = () => {
           <CheckCircle size={16} className="text-green-600" />
           <div>
             <p className="font-medium text-green-800">Wallet Connected</p>
-            <p className="text-sm text-green-600">0x7d3a...4819 • 5.64 ETH</p>
+            <p className="text-sm text-green-600">0x7d3a...4819 • 5.64 ICP</p>
           </div>
         </div>
 
@@ -289,7 +289,7 @@ const FarmPurchase = () => {
             </div>
             <div className="flex justify-between">
               <span>Total Amount:</span>
-              <span className="font-medium">{projectData.total} ETH</span>
+              <span className="font-medium">{projectData.total} ICP</span>
             </div>
             <div className="flex justify-between">
               <span>Network:</span>
@@ -308,7 +308,7 @@ const FarmPurchase = () => {
           <div className="text-sm">
             <p className="font-medium text-yellow-800">Network Fee Required</p>
             <p className="text-yellow-700">
-              A network fee of 0.002 ETH will be charged for processing this
+              A network fee of 0.002 ICP will be charged for processing this
               transaction.
             </p>
           </div>
