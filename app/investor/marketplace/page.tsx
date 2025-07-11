@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,133 +14,26 @@ import {
   Clock,
   Sprout,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-
-type Project = {
-  id: number;
-  title: string;
-  location: string;
-  crop: string;
-  area: string;
-  minInvestment: string;
-  totalValue: string;
-  funded: number;
-  investors: number;
-  timeline: string;
-  roi: string;
-  status: string;
-  icon: string;
-  tags: string[];
-};
+import { useMarketplaceHandlers, type MarketplaceProject } from "./handlers";
 
 const InvestorMarketplace = () => {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFilter, setSelectedFilter] = useState("All Farms");
-  const [sortBy, setSortBy] = useState("Recently Listed");
-
-  const navigateToDetails = () => router.push('/investor/farm-details');
-  const navigateToPurchase = () => router.push('/investor/farm-purchase');
+  const {
+    projects,
+    stats,
+    isLoading,
+    error,
+    searchQuery,
+    selectedFilter,
+    sortBy,
+    handleSearch,
+    handleFilterChange,
+    handleSortChange,
+    handleClearFilters,
+    handleLoadMore,
+    navigateToDetails,
+    navigateToPurchase,
+  } = useMarketplaceHandlers();
   // const navigateToTracking = () => router.push('/investor/farm-tracking');
-
-  const projects: Project[] = [
-    {
-      id: 1,
-      title: "Apple Orchard #001",
-      location: "Batu, Malang, East Java",
-      crop: "Apple",
-      area: "2.5 ICP",
-      minInvestment: "0.1 ICP",
-      totalValue: "2.5 ICP",
-      funded: 68,
-      investors: 24,
-      timeline: "8 months",
-      roi: "+18%",
-      status: "Active",
-      icon: "🍎",
-      tags: ["Organic", "Premium"],
-    },
-    {
-      id: 2,
-      title: "Rice Field #003",
-      location: "Kediri, East Java",
-      crop: "Rice",
-      area: "1.2 ICP",
-      minInvestment: "0.05 ICP",
-      totalValue: "1.2 ICP",
-      funded: 85,
-      investors: 42,
-      timeline: "4 months",
-      roi: "+12%",
-      status: "Active",
-      icon: "🌾",
-      tags: ["Traditional", "Sustainable"],
-    },
-    {
-      id: 3,
-      title: "Coffee Bean #108",
-      location: "Jember, East Java",
-      crop: "Coffee",
-      area: "3.1 ICP",
-      minInvestment: "0.2 ICP",
-      totalValue: "3.1 ICP",
-      funded: 45,
-      investors: 18,
-      timeline: "12 months",
-      roi: "+25%",
-      status: "Active",
-      icon: "☕",
-      tags: ["Premium", "Export"],
-    },
-    {
-      id: 4,
-      title: "Durian King #025",
-      location: "Blitar, East Java",
-      crop: "Durian",
-      area: "1.8 ICP",
-      minInvestment: "0.15 ICP",
-      totalValue: "1.8 ICP",
-      funded: 72,
-      investors: 35,
-      timeline: "6 months",
-      roi: "+20%",
-      status: "Active",
-      icon: "🍈",
-      tags: ["Exotic", "Premium"],
-    },
-    {
-      id: 5,
-      title: "Chili Red #045",
-      location: "Lumajang, East Java",
-      crop: "Chili",
-      area: "0.8 ICP",
-      minInvestment: "0.05 ICP",
-      totalValue: "0.8 ICP",
-      funded: 90,
-      investors: 52,
-      timeline: "3 months",
-      roi: "+15%",
-      status: "Active",
-      icon: "🌶️",
-      tags: ["Spicy", "Local"],
-    },
-    {
-      id: 6,
-      title: "Vanilla Pod #078",
-      location: "Bali, Indonesia",
-      crop: "Vanilla",
-      area: "2.2 ICP",
-      minInvestment: "0.25 ICP",
-      totalValue: "2.2 ICP",
-      funded: 55,
-      investors: 28,
-      timeline: "18 months",
-      roi: "+35%",
-      status: "Active",
-      icon: "🌺",
-      tags: ["Premium", "Rare"],
-    },
-  ];
 
   const filterOptions = [
     "All Farms",
@@ -158,7 +51,7 @@ const InvestorMarketplace = () => {
     "Lowest Investment",
   ];
 
-  const ProjectCard = ({ project }: { project: Project }) => (
+  const ProjectCard = ({ project }: { project: MarketplaceProject }) => (
     <Card className="border-2 border-black hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
@@ -248,14 +141,14 @@ const InvestorMarketplace = () => {
               size="sm"
               variant="outline"
               className="border-black text-black hover:bg-gray-100 min-w-24"
-              onClick={navigateToDetails}
+              onClick={() => navigateToDetails(project.id)}
             >
               View Details
             </Button>
             <Button
               size="sm"
               className="bg-black text-white hover:bg-gray-800 min-w-24"
-              onClick={navigateToPurchase}
+              onClick={() => navigateToPurchase(project.id)}
             >
               Invest Now
             </Button>
@@ -292,7 +185,7 @@ const InvestorMarketplace = () => {
               <Input
                 placeholder="Search projects..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="pl-10 border-black focus:ring-black focus:border-black"
               />
             </div>
@@ -300,7 +193,7 @@ const InvestorMarketplace = () => {
             <div className="flex gap-2">
               <select
                 value={selectedFilter}
-                onChange={(e) => setSelectedFilter(e.target.value)}
+                onChange={(e) => handleFilterChange(e.target.value)}
                 className="border border-black rounded px-3 py-2 focus:ring-black focus:border-black"
               >
                 {filterOptions.map((option) => (
@@ -312,7 +205,7 @@ const InvestorMarketplace = () => {
 
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => handleSortChange(e.target.value)}
                 className="border border-black rounded px-3 py-2 focus:ring-black focus:border-black"
               >
                 {sortOptions.map((option) => (
@@ -333,7 +226,7 @@ const InvestorMarketplace = () => {
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Sprout size={20} />
-                <span className="text-2xl font-bold">24</span>
+                <span className="text-2xl font-bold">{stats.activeProjects}</span>
               </div>
               <p className="text-sm text-gray-600">Active Projects</p>
             </CardContent>
@@ -343,7 +236,7 @@ const InvestorMarketplace = () => {
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <DollarSign size={20} />
-                <span className="text-2xl font-bold">156</span>
+                <span className="text-2xl font-bold">{stats.totalInvestors}</span>
               </div>
               <p className="text-sm text-gray-600">Total Investors</p>
             </CardContent>
@@ -353,7 +246,7 @@ const InvestorMarketplace = () => {
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <TrendingUp size={20} />
-                <span className="text-2xl font-bold">18.2%</span>
+                <span className="text-2xl font-bold">{stats.averageROI}</span>
               </div>
               <p className="text-sm text-gray-600">Avg. ROI</p>
             </CardContent>
@@ -363,7 +256,7 @@ const InvestorMarketplace = () => {
             <CardContent className="p-4 text-center">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Clock size={20} />
-                <span className="text-2xl font-bold">8.5</span>
+                <span className="text-2xl font-bold">{stats.averageMonths}</span>
               </div>
               <p className="text-sm text-gray-600">Months Avg.</p>
             </CardContent>
@@ -396,13 +289,37 @@ const InvestorMarketplace = () => {
           <Button
             variant="outline"
             className="border-black text-black hover:bg-gray-100"
+            onClick={handleLoadMore}
           >
             Load More Projects
           </Button>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-black rounded-full mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading projects...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">⚠️</div>
+            <p className="text-red-600 mb-4">Error: {error}</p>
+            <Button
+              variant="outline"
+              className="border-black text-black hover:bg-gray-100"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* Empty State */}
-        {projects.length === 0 && (
+        {!isLoading && !error && projects.length === 0 && (
           <div className="text-center py-12">
             <Sprout size={48} className="mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-semibold mb-2">No projects found</h3>
@@ -412,10 +329,7 @@ const InvestorMarketplace = () => {
             <Button
               variant="outline"
               className="border-black text-black hover:bg-gray-100"
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedFilter("All Farms");
-              }}
+              onClick={handleClearFilters}
             >
               Clear Filters
             </Button>

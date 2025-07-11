@@ -1,7 +1,7 @@
 'use client'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,16 @@ import {
   X,
   Copy,
 } from "lucide-react";
+import { purchaseHandlers, PurchaseProjectData, TransactionData } from "./handlers";
 
 const FarmPurchase = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [projectData, setProjectData] = useState<PurchaseProjectData | null>(null);
+  const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
+  const [walletData, setWalletData] = useState<{ address: string; balance: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const steps = [
     { number: 1, title: "Review", status: "completed" },
@@ -41,42 +47,61 @@ const FarmPurchase = () => {
     },
   ];
 
-  const projectData = {
-    title: "Apple Orchard #001",
-    location: "Batu, Malang Farms",
-    timeline: "8 months",
-    quantity: 1,
-    availableNFTs: 57,
-    nftPrice: 0.42,
-    platformFee: 0.011,
-    networkFee: 0.002,
-    total: 0.432,
-    expectedROI: "18%",
-    riskLevel: "Low",
-    harvestPeriod: "8 months",
-    yourShare: "1% of harvest",
+  // Load project data on component mount
+  useEffect(() => {
+    const loadProjectData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        // Get project ID from URL params (defaulting to 1 for demo)
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = parseInt(urlParams.get('projectId') || '1');
+        
+        const data = await purchaseHandlers.fetchProjectDetails(projectId);
+        setProjectData(data);
+      } catch (error) {
+        console.error('Error loading project:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load project');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProjectData();
+  }, []);
+
+  // Copy transaction hash to clipboard
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
-  const transactionData = {
-    hash: "0x3bc3c1...e4790f90",
-    blockNumber: "1,234,567",
-    network: "Internet Computer Protocol",
-    totalPaid: "0.432 ICP",
-    yourShares: "1% of Harvest",
-  };
-
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < 5) {
-      if (currentStep === 3) {
-        setIsProcessing(true);
-        setCurrentStep(4);
-        // Simulate processing time
-        setTimeout(() => {
+      try {
+        if (currentStep === 1) {
+          // Simulate wallet connection
+          const wallet = await purchaseHandlers.simulateWalletConnection();
+          setWalletData(wallet);
+          setCurrentStep(2);
+        } else if (currentStep === 2) {
+          setCurrentStep(3);
+        } else if (currentStep === 3) {
+          setIsProcessing(true);
+          setCurrentStep(4);
+          
+          // Process the purchase
+          const result = await purchaseHandlers.processPurchase();
+          setTransactionData(result);
           setIsProcessing(false);
           setCurrentStep(5);
-        }, 3000);
-      } else {
-        setCurrentStep(currentStep + 1);
+        } else {
+          setCurrentStep(currentStep + 1);
+        }
+      } catch (error) {
+        console.error('Error processing step:', error);
+        setError(error instanceof Error ? error.message : 'An error occurred');
+        setIsProcessing(false);
       }
     }
   };
@@ -86,6 +111,63 @@ const FarmPurchase = () => {
       setCurrentStep(currentStep - 1);
     }
   };
+
+  const handleQuantityChange = async (newQuantity: number) => {
+    if (!projectData) return;
+    
+    try {
+      const calculation = await purchaseHandlers.updateQuantity(newQuantity);
+      setProjectData({
+        ...projectData,
+        quantity: newQuantity,
+        nftPrice: calculation.nftPrice,
+        platformFee: calculation.platformFee,
+        total: calculation.total,
+        yourShare: calculation.yourShare,
+      });
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      setError(error instanceof Error ? error.message : 'Failed to update quantity');
+    }
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-black rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">⚠️</div>
+          <p className="text-red-600 mb-4">Error: {error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // No project data
+  if (!projectData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No project data available</p>
+        </div>
+      </div>
+    );
+  }
 
   const ProgressIndicator = () => (
     <div className="flex items-center justify-center mb-6">
@@ -162,6 +244,8 @@ const FarmPurchase = () => {
               variant="outline"
               size="sm"
               className="border-black w-8 h-8 p-0"
+              onClick={() => handleQuantityChange(Math.max(1, projectData.quantity - 1))}
+              disabled={projectData.quantity <= 1}
             >
               -
             </Button>
@@ -174,6 +258,8 @@ const FarmPurchase = () => {
               variant="outline"
               size="sm"
               className="border-black w-8 h-8 p-0"
+              onClick={() => handleQuantityChange(Math.min(projectData.availableNFTs, projectData.quantity + 1))}
+              disabled={projectData.quantity >= projectData.availableNFTs}
             >
               +
             </Button>
@@ -275,7 +361,9 @@ const FarmPurchase = () => {
           <CheckCircle size={16} className="text-green-600" />
           <div>
             <p className="font-medium text-green-800">Wallet Connected</p>
-            <p className="text-sm text-green-600">0x7d3a...4819 • 5.64 ICP</p>
+            <p className="text-sm text-green-600">
+              {walletData?.address || "0x7d3a...4819"} • {walletData?.balance || 5.64} ICP
+            </p>
           </div>
         </div>
 
@@ -417,18 +505,18 @@ const FarmPurchase = () => {
             <div>
               <h3 className="font-semibold">{projectData.title}</h3>
               <p className="text-sm text-gray-600">{projectData.location}</p>
-              <p className="text-sm text-gray-600">Quantity: 1 NFT</p>
+              <p className="text-sm text-gray-600">Quantity: {projectData.quantity} NFT{projectData.quantity > 1 ? 's' : ''}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <span className="text-sm text-gray-600">Total Paid</span>
-              <p className="font-semibold">{transactionData.totalPaid}</p>
+              <p className="font-semibold">{transactionData?.totalPaid || `${projectData.total} ICP`}</p>
             </div>
             <div>
               <span className="text-sm text-gray-600">Your Shares</span>
-              <p className="font-semibold">{transactionData.yourShares}</p>
+              <p className="font-semibold">{transactionData?.yourShares || projectData.yourShare}</p>
             </div>
           </div>
 
@@ -438,23 +526,26 @@ const FarmPurchase = () => {
               <div className="flex justify-between">
                 <span>Transaction Hash:</span>
                 <div className="flex items-center gap-1">
-                  <span className="font-mono">{transactionData.hash}</span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="border-gray-300 p-0.5"
-                  >
-                    <Copy size={10} />
-                  </Button>
+                  <span className="font-mono">{transactionData?.hash || "Processing..."}</span>
+                  {transactionData?.hash && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-gray-300 p-0.5"
+                      onClick={() => copyToClipboard(transactionData.hash)}
+                    >
+                      <Copy size={10} />
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="flex justify-between">
                 <span>Block Number:</span>
-                <span>{transactionData.blockNumber}</span>
+                <span>{transactionData?.blockNumber || "Pending"}</span>
               </div>
               <div className="flex justify-between">
                 <span>Network:</span>
-                <span>{transactionData.network}</span>
+                <span>{transactionData?.network || "Internet Computer Protocol"}</span>
               </div>
             </div>
           </div>

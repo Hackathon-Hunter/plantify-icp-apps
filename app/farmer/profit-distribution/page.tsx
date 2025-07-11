@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,53 +13,42 @@ import {
   Send,
   FileText,
   DollarSign,
+  X,
 } from "lucide-react";
+import { useProfitDistribution } from './handlers';
 
 const FarmerProfitDistribution = () => {
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [totalRevenue, setTotalRevenue] = useState("");
-  const [operationalCosts, setOperationalCosts] = useState("");
-  const [additionalNotes, setAdditionalNotes] = useState("");
+  const {
+    // State
+    showTransferModal,
+    totalRevenue,
+    operationalCosts,
+    additionalNotes,
+    isProcessing,
+    uploadedFiles,
 
-  // Calculate profit breakdown
-  const revenue = parseFloat(totalRevenue) || 0;
-  const costs = parseFloat(operationalCosts) || 0;
-  const grossProfit = revenue - costs;
-  const platformFee = grossProfit * 0.1;
-  const netProfit = grossProfit - platformFee;
-  const profitMargin =
-    revenue > 0 ? ((netProfit / revenue) * 100).toFixed(1) : 0;
+    // Computed values
+    profitBreakdown,
+    isFormValid,
 
-  const projectData = {
-    name: "Organic Rice Farm Malang",
-    crop: "Rice",
-    location: "Batu, Malang, East Java",
-    area: "2.5 hectares",
-    totalInvestors: 12,
-    nftsIssued: 60,
-    funding: 4200,
-    lastUpdate: "2 hours ago",
-  };
+    // Static data
+    projectData,
+    milestones,
+    requiredDocuments,
 
-  const milestones = [
-    { title: "Harvest Completion", date: "2025-01-10", status: "completed" },
-    {
-      title: "Sales & Revenue Collection",
-      date: "2025-01-12",
-      status: "completed",
-    },
-    { title: "Cost Calculation", date: "", status: "current" },
-    { title: "Profit Distribution", date: "", status: "pending" },
-  ];
+    // Handlers
+    handleCloseTransferModal,
+    handleRevenueChange,
+    handleCostsChange,
+    handleNotesChange,
+    handleFileUpload,
+    handleRemoveFile,
+    handleTransferProfit,
+    handleCalculateProfits,
+    handleTransferAllPending,
+  } = useProfitDistribution();
 
-  const requiredDocuments = [
-    "Sales receipts/invoices",
-    "Harvest quantity report",
-    "Market price verification",
-    "Operational cost breakdown",
-  ];
-
-  const TransferModal = () => (
+  const TransferModal = useMemo(() => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md border-2 border-black bg-white">
         <CardHeader className="border-b border-black">
@@ -89,7 +78,7 @@ const FarmerProfitDistribution = () => {
             <Input
               placeholder="Enter total sales revenue"
               value={totalRevenue}
-              onChange={(e) => setTotalRevenue(e.target.value)}
+              onChange={(e) => handleRevenueChange(e.target.value)}
               className="border-black focus:ring-black focus:border-black"
             />
           </div>
@@ -101,7 +90,7 @@ const FarmerProfitDistribution = () => {
             <Input
               placeholder="Enter all operational costs"
               value={operationalCosts}
-              onChange={(e) => setOperationalCosts(e.target.value)}
+              onChange={(e) => handleCostsChange(e.target.value)}
               className="border-black focus:ring-black focus:border-black"
             />
           </div>
@@ -115,31 +104,31 @@ const FarmerProfitDistribution = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span>Total Revenue:</span>
-                  <span className="font-medium">${revenue.toFixed(2)}</span>
+                  <span className="font-medium">${profitBreakdown.revenue.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Operational Costs:</span>
                   <span className="font-medium text-red-600">
-                    -${costs.toFixed(2)}
+                    -${profitBreakdown.costs.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
                   <span>Gross Profit:</span>
-                  <span className="font-medium">${grossProfit.toFixed(2)}</span>
+                  <span className="font-medium">${profitBreakdown.grossProfit.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Platform Fee (10%):</span>
                   <span className="font-medium text-red-600">
-                    -${platformFee.toFixed(2)}
+                    -${profitBreakdown.platformFee.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between border-t pt-2 font-semibold">
                   <span>Net Profit for Distribution:</span>
-                  <span className="text-lg">${netProfit.toFixed(2)}</span>
+                  <span className="text-lg">${profitBreakdown.netProfit.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Profit Margin:</span>
-                  <span className="font-medium">{profitMargin}%</span>
+                  <span className="font-medium">{profitBreakdown.profitMargin}%</span>
                 </div>
               </div>
             </CardContent>
@@ -157,10 +146,36 @@ const FarmerProfitDistribution = () => {
               <Button
                 variant="outline"
                 className="border-black text-black hover:bg-gray-100"
+                onClick={() => document.getElementById('file-upload')?.click()}
               >
                 Choose Files
               </Button>
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                onChange={(e) => handleFileUpload(e.target.files)}
+                className="hidden"
+              />
             </div>
+            {uploadedFiles.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {uploadedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                    <span className="text-sm truncate">{file.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -171,7 +186,7 @@ const FarmerProfitDistribution = () => {
               placeholder="Any additional information about the harvest, sales, or distribution..."
               rows={3}
               value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
+              onChange={(e) => handleNotesChange(e.target.value)}
               className="w-full p-2 border border-black rounded focus:ring-black focus:border-black resize-none"
             />
           </div>
@@ -185,7 +200,7 @@ const FarmerProfitDistribution = () => {
               </div>
               <div className="text-sm space-y-1">
                 <p>
-                  ${netProfit.toFixed(2)} will be transferred to Plantify
+                  ${profitBreakdown.netProfit.toFixed(2)} will be transferred to Plantify
                   platform
                 </p>
                 <p>
@@ -196,7 +211,7 @@ const FarmerProfitDistribution = () => {
                 </p>
                 <p>Distribution based on NFT ownership percentages</p>
                 <p className="text-gray-600">
-                  Platform fee: ${platformFee.toFixed(2)} retained by Plantify
+                  Platform fee: ${profitBreakdown.platformFee.toFixed(2)} retained by Plantify
                 </p>
               </div>
             </CardContent>
@@ -206,22 +221,40 @@ const FarmerProfitDistribution = () => {
             <Button
               variant="outline"
               className="flex-1 border-black text-black hover:bg-gray-100"
-              onClick={() => setShowTransferModal(false)}
+              onClick={handleCloseTransferModal}
+              disabled={isProcessing}
             >
               Cancel
             </Button>
             <Button
               className="flex-1 bg-black text-white hover:bg-gray-800"
-              disabled={!revenue || !costs}
+              disabled={!isFormValid || isProcessing}
+              onClick={handleTransferProfit}
             >
               <Send size={16} className="mr-2" />
-              Transfer ${netProfit.toFixed(2)} to Plantify
+              {isProcessing ? 'Processing...' : `Transfer $${profitBreakdown.netProfit.toFixed(2)} to Plantify`}
             </Button>
           </div>
         </CardContent>
       </Card>
     </div>
-  );
+  ), [
+    projectData,
+    totalRevenue,
+    operationalCosts,
+    additionalNotes,
+    uploadedFiles,
+    profitBreakdown,
+    isFormValid,
+    isProcessing,
+    handleRevenueChange,
+    handleCostsChange,
+    handleNotesChange,
+    handleFileUpload,
+    handleRemoveFile,
+    handleCloseTransferModal,
+    handleTransferProfit,
+  ]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -253,7 +286,7 @@ const FarmerProfitDistribution = () => {
                   <Button
                     size="sm"
                     className="bg-orange-500 text-white hover:bg-orange-600"
-                    onClick={() => setShowTransferModal(true)}
+                    onClick={handleTransferAllPending}
                   >
                     <Send size={14} className="mr-1" />
                     Transfer All Pending ($1,296)
@@ -262,6 +295,7 @@ const FarmerProfitDistribution = () => {
                     size="sm"
                     variant="outline"
                     className="border-orange-500 text-orange-600 hover:bg-orange-100"
+                    onClick={handleCalculateProfits}
                   >
                     <Calculator size={14} className="mr-1" />
                     Calculate Profits
@@ -308,7 +342,7 @@ const FarmerProfitDistribution = () => {
                   </div>
                   <Button
                     className="bg-black text-white hover:bg-gray-800"
-                    onClick={() => setShowTransferModal(true)}
+                    onClick={handleTransferAllPending}
                   >
                     <Send size={16} className="mr-2" />
                     Transfer Profits
@@ -419,7 +453,7 @@ const FarmerProfitDistribution = () => {
       </div>
 
       {/* Transfer Modal */}
-      {showTransferModal && <TransferModal />}
+      {showTransferModal && TransferModal}
     </div>
   );
 };

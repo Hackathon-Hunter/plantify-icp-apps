@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,88 +10,113 @@ import {
   Clock,
   FileText,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useFarmDetailsHandlers, ProjectDisplayData } from "./handlers";
 
 const FarmDetails = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const handlers = useFarmDetailsHandlers();
+  
   const [investmentAmount, setInvestmentAmount] = useState("1");
   const [activeTab, setActiveTab] = useState("overview");
+  const [projectData, setProjectData] = useState<ProjectDisplayData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const navigateToPurchase = () => router.push('/investor/farm-purchase');
+  const projectId = searchParams.get('projectId') || '1';
 
-  const projectData = {
-    id: "PLT-001",
-    title: "Apple Orchard #001",
-    location: "Batu, Malang, East Java",
-    crop: "Apple",
-    farmer: "Ahmad Rizki",
-    area: "2.5 hectares",
-    status: "Active",
-    tags: ["Organic", "Premium"],
-    description:
-      "Premium organic apple orchard located in the fertile highlands of Batu, Malang. This project focuses on sustainable farming practices to produce high-quality apples for both domestic and export markets.",
+  useEffect(() => {
+    const loadProjectData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const data = await handlers.fetchProjectDetails(projectId);
+        setProjectData(data);
+        
+      } catch (err) {
+        console.error('Error loading project data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load project data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Investment details
-    totalValue: "2.5 ICP",
-    minInvestment: "0.1 ICP",
-    currentPrice: "0.42 ICP",
-    priceChange: "+2%",
-    funded: 68,
-    investors: 24,
-    timeline: "8 months",
-    expectedROI: "+18%",
+    loadProjectData();
+  }, [projectId, handlers]);
 
-    // Progress
-    fundingProgress: {
-      current: 1.7,
-      target: 2.5,
-      percentage: 68,
-    },
-
-    // Investment breakdown
-    breakdown: {
-      seedlings: { amount: 200, percentage: 20 },
-      equipment: { amount: 300, percentage: 30 },
-      labor: { amount: 250, percentage: 25 },
-      operations: { amount: 150, percentage: 15 },
-      marketing: { amount: 100, percentage: 10 },
-    },
-
-    // Timeline
-    milestones: [
-      { title: "Planting Complete", date: "2024-03-15", status: "completed" },
-      { title: "First Growth Phase", date: "2024-06-15", status: "completed" },
-      { title: "Maintenance & Care", date: "2024-09-15", status: "current" },
-      { title: "Harvest Preparation", date: "2024-12-15", status: "upcoming" },
-      { title: "Harvest & Sales", date: "2025-03-15", status: "upcoming" },
-    ],
-
-    // Risk assessment
-    risks: [
-      {
-        factor: "Weather Risk",
-        level: "Low",
-        description: "Stable climate conditions",
-      },
-      {
-        factor: "Market Risk",
-        level: "Medium",
-        description: "Fluctuating apple prices",
-      },
-      {
-        factor: "Operational Risk",
-        level: "Low",
-        description: "Experienced farmer",
-      },
-    ],
+  const navigateToPurchase = () => {
+    router.push(`/investor/farm-purchase?projectId=${projectId}`);
   };
+
+  const handleSaveProject = async () => {
+    if (!projectData) return;
+    try {
+      await handlers.saveProject(projectData.id);
+      // TODO: Show success toast
+    } catch (err) {
+      console.error('Error saving project:', err);
+      // TODO: Show error toast
+    }
+  };
+
+  const handleShareProject = async () => {
+    if (!projectData) return;
+    try {
+      const shareUrl = await handlers.shareProject(projectData.id);
+      // TODO: Show success toast with share URL
+      console.log('Project shared:', shareUrl);
+    } catch (err) {
+      console.error('Error sharing project:', err);
+      // TODO: Show error toast
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading project details...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Error Loading Project</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!projectData) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Project Not Found</h2>
+          <p className="text-gray-600 mb-4">The requested project could not be found.</p>
+          <Button onClick={() => router.push('/investor/marketplace')}>
+            Back to Marketplace
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Now using dynamic projectData from handlers
 
   const calculateInvestment = () => {
     const amount = parseFloat(investmentAmount) || 0;
-    const estimatedReturn = amount * 1.18; // 18% ROI
-    const profit = estimatedReturn - amount;
-    return { amount, estimatedReturn, profit };
+    return handlers.calculateInvestment(amount);
   };
 
   const investment = calculateInvestment();
@@ -112,6 +137,7 @@ const FarmDetails = () => {
               <Button
                 variant="outline"
                 className="border-black text-black hover:bg-gray-100"
+                onClick={handleSaveProject}
               >
                 <Heart size={16} className="mr-2" />
                 Save
@@ -119,6 +145,7 @@ const FarmDetails = () => {
               <Button
                 variant="outline"
                 className="border-black text-black hover:bg-gray-100"
+                onClick={handleShareProject}
               >
                 <Share2 size={16} className="mr-2" />
                 Share
@@ -215,20 +242,19 @@ const FarmDetails = () => {
 
                 <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold">33%</div>
+                    <div className="text-2xl font-bold">{projectData.funded}%</div>
                     <div className="text-sm text-gray-600">Funded</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">8</div>
-                    <div className="text-sm text-gray-600">months</div>
-                    <div className="text-xs text-gray-500">Time remaining</div>
+                    <div className="text-2xl font-bold">{projectData.timeline}</div>
+                    <div className="text-sm text-gray-600">Timeline</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">24</div>
+                    <div className="text-2xl font-bold">{projectData.investors}</div>
                     <div className="text-sm text-gray-600">Investors</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold">18%</div>
+                    <div className="text-2xl font-bold">{projectData.expectedROI}</div>
                     <div className="text-sm text-gray-600">Est. ROI</div>
                   </div>
                 </div>
@@ -367,9 +393,11 @@ const FarmDetails = () => {
                   <div className="space-y-3">
                     {[
                       "Land Ownership Certificate",
-                      "Farming License",
+                      "Farming License", 
                       "Business Registration",
                       "Insurance Policy",
+                      "Soil Test Results",
+                      "Environmental Permit"
                     ].map((doc, index) => (
                       <div
                         key={index}
@@ -378,11 +406,15 @@ const FarmDetails = () => {
                         <div className="flex items-center gap-2">
                           <FileText size={16} />
                           <span>{doc}</span>
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            Verified
+                          </span>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
                           className="border-black text-black"
+                          onClick={() => console.log(`Viewing document: ${doc}`)}
                         >
                           View
                         </Button>
@@ -437,15 +469,27 @@ const FarmDetails = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>Est. Return (18%):</span>
+                    <span>Gross Return (18%):</span>
+                    <span className="font-semibold text-green-600">
+                      {investment.estimatedReturn.toFixed(2)} ICP
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Platform Fee (10%):</span>
+                    <span className="font-semibold text-red-600">
+                      -{investment.platformFee.toFixed(2)} ICP
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Net Profit:</span>
                     <span className="font-semibold text-green-600">
                       +{investment.profit.toFixed(2)} ICP
                     </span>
                   </div>
                   <div className="flex justify-between text-sm border-t pt-2">
-                    <span>Total Return:</span>
+                    <span>Net Return:</span>
                     <span className="font-semibold">
-                      {investment.estimatedReturn.toFixed(2)} ICP
+                      {investment.netReturn.toFixed(2)} ICP
                     </span>
                   </div>
                 </div>

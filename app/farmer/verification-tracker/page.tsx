@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,138 +12,166 @@ import {
   DollarSign,
   Award,
   Rocket,
+  RefreshCw,
+  Bell,
 } from "lucide-react";
+import { useVerificationTracker } from "./handlers";
 
 const FarmerVerificationTracker = () => {
-  const [overallProgress] = useState(33);
+  const {
+    trackerData,
+    notifications,
+    isLoading,
+    error,
+    isRefreshing,
+    unreadNotifications,
+    progressStatusText,
+    getStepStatusConfig,
+    getStepStatusText,
+    handleContactSupport,
+    handleViewProjectDetails,
+    handleUpdateInformation,
+    refreshData,
+    markNotificationAsRead,
+  } = useVerificationTracker();
 
-  const projectInfo = {
-    projectId: "PLT-2025-001",
-    farmer: "Ahmad Rizki",
-    crop: "Rice",
-    location: "Batu, Malang, East Java",
-    fundingAmount: "$3,500",
+  // Icon mapping for different step types
+  const getStepIcon = (iconType?: string) => {
+    const iconMap = {
+      document: FileText,
+      search: Search,
+      map: MapPin,
+      dollar: DollarSign,
+      award: Award,
+      rocket: Rocket,
+    };
+    return iconMap[iconType as keyof typeof iconMap] || Clock;
   };
 
-  const verificationSteps = [
-    {
-      id: 1,
-      title: "Document Review",
-      description: "Reviewing submitted documents and application forms",
-      estimatedTime: "6-12 hours",
-      completedTime: "8 hours",
-      status: "completed",
-      icon: FileText,
-    },
-    {
-      id: 2,
-      title: "Agricultural Assessment",
-      description:
-        "Evaluating farming plan, crop viability, and market analysis",
-      estimatedTime: "12-24 hours",
-      completedTime: "16 hours",
-      status: "completed",
-      icon: Search,
-    },
-    {
-      id: 3,
-      title: "Site Verification",
-      description: "Physical inspection of farm location and infrastructure",
-      estimatedTime: "1-2 days",
-      currentDate: "January 4, 2025",
-      status: "in-progress",
-      icon: MapPin,
-    },
-    {
-      id: 4,
-      title: "Financial Validation",
-      description: "Budget analysis and financial feasibility assessment",
-      estimatedTime: "4-8 hours",
-      status: "pending",
-      icon: DollarSign,
-    },
-    {
-      id: 5,
-      title: "Final Approval",
-      description: "Management review and final approval decision",
-      estimatedTime: "2-4 hours",
-      status: "pending",
-      icon: Award,
-    },
-    {
-      id: 6,
-      title: "Investment Launched",
-      description: "Project goes live on marketplace for investors",
-      estimatedTime: "1-2 hours",
-      status: "pending",
-      icon: Rocket,
-    },
-  ];
+  type StatusUnion = { Failed: null } | { InProgress: null } | { Completed: null } | { Pending: null };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle size={20} className="text-black" />;
-      case "in-progress":
-        return <Clock size={20} className="text-black" />;
-      case "pending":
-        return <Clock size={20} className="text-gray-400" />;
-      default:
-        return <Clock size={20} className="text-gray-400" />;
-    }
+  const getStatusIcon = (status: StatusUnion) => {
+    if ('Completed' in status) return <CheckCircle size={20} className="text-black" />;
+    if ('InProgress' in status) return <Clock size={20} className="text-black" />;
+    if ('Failed' in status) return <Clock size={20} className="text-red-500" />;
+    return <Clock size={20} className="text-gray-400" />;
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "Completed";
-      case "in-progress":
-        return "In Progress";
-      case "pending":
-        return "Pending";
-      default:
-        return "Pending";
-    }
+  const isStatusCompleted = (status: StatusUnion) => 'Completed' in status;
+  const isStatusInProgress = (status: StatusUnion) => 'InProgress' in status;
+  const isStatusFailed = (status: StatusUnion) => 'Failed' in status;
+  const isStatusPending = (status: StatusUnion) => 'Pending' in status;
+
+  const getStepStyle = (status: StatusUnion) => {
+    let statusString = "pending";
+    if ('Completed' in status) statusString = "completed";
+    else if ('InProgress' in status) statusString = "in-progress";
+    else if ('Failed' in status) statusString = "failed";
+    else if ('Pending' in status) statusString = "pending";
+    
+    const config = getStepStatusConfig(statusString as "completed" | "in-progress" | "pending" | "current");
+    return `${config.borderColor} ${config.bgColor}`;
   };
 
-  const getStepStyle = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "border-black bg-white";
-      case "in-progress":
-        return "border-black bg-gray-50";
-      case "pending":
-        return "border-gray-300 bg-gray-50";
-      default:
-        return "border-gray-300 bg-gray-50";
-    }
+  const getStatusString = (status: StatusUnion): string => {
+    if ('Completed' in status) return "completed";
+    if ('InProgress' in status) return "in-progress";
+    if ('Failed' in status) return "failed";
+    return "pending";
   };
+
+  if (isLoading && !trackerData) {
+    return (
+      <div className="min-h-screen bg-white p-4 flex items-center justify-center">
+        <div className="text-center">
+          <Clock className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading verification tracker...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !trackerData) {
+    return (
+      <div className="min-h-screen bg-white p-4 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!trackerData) {
+    return (
+      <div className="min-h-screen bg-white p-4 flex items-center justify-center">
+        <p className="text-gray-600">No verification data available.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white p-4">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          Verification Progress Tracker
-        </h1>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h1 className="text-3xl font-bold">
+            Verification Progress Tracker
+          </h1>
+          {unreadNotifications.length > 0 && (
+            <div className="relative">
+              <Bell className="h-6 w-6 text-black" />
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {unreadNotifications.length}
+              </span>
+            </div>
+          )}
+        </div>
         <p className="text-gray-600 text-sm">
           Track your investment setup verification by our expert team
         </p>
+        {error && (
+          <p className="text-red-500 text-sm mt-2">{error}</p>
+        )}
       </div>
 
       {/* Overall Progress */}
       <div className="max-w-4xl mx-auto mb-8">
-        <div className="text-center mb-4">
-          <h2 className="text-lg font-semibold mb-2">Overall Progress</h2>
-          <div className="text-2xl font-bold">{overallProgress}%</div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-center flex-1">
+            <h2 className="text-lg font-semibold mb-2">Overall Progress</h2>
+            <div className="text-2xl font-bold">{trackerData.overallProgress}%</div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshData}
+            disabled={isRefreshing}
+            className="border-black text-black hover:bg-gray-100"
+          >
+            {isRefreshing ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
           <div
             className="bg-black h-4 rounded-full transition-all duration-300"
-            style={{ width: `${overallProgress}%` }}
+            style={{ width: `${trackerData.overallProgress}%` }}
           />
         </div>
-        <p className="text-center text-sm text-gray-600">Completion overdue</p>
+        <div className="flex justify-between items-center text-sm">
+          <p className="text-gray-600">
+            Status: {progressStatusText}
+          </p>
+          <p className="text-gray-600">
+            Current Step: {trackerData.currentStep}
+          </p>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto space-y-6">
@@ -155,37 +183,66 @@ const FarmerVerificationTracker = () => {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Project ID</p>
-                <p className="font-semibold">{projectInfo.projectId}</p>
+                <p className="text-sm font-medium text-gray-600">Investment ID</p>
+                <p className="font-semibold">{trackerData.investmentId.toString()}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Farmer</p>
-                <p className="font-semibold">{projectInfo.farmer}</p>
+                <p className="text-sm font-medium text-gray-600">Current Step</p>
+                <p className="font-semibold">{trackerData.currentStep}</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Crop & Location
-                </p>
-                <p className="font-semibold">{projectInfo.crop}</p>
-                <p className="text-sm text-gray-600">{projectInfo.location}</p>
+                <p className="text-sm font-medium text-gray-600">Progress</p>
+                <p className="font-semibold">{trackerData.overallProgress.toString()}%</p>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Funding Amount
-                </p>
-                <p className="font-semibold">{projectInfo.fundingAmount}</p>
+                <p className="text-sm font-medium text-gray-600">Last Updated</p>
+                <p className="font-semibold">{new Date(Number(trackerData.lastUpdated)).toLocaleDateString()}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Notifications */}
+        {notifications.length > 0 && (
+          <Card className="border border-gray-300">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Recent Updates</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {notifications.slice(0, 3).map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-3 rounded-lg border ${
+                      notification.read ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200'
+                    }`}
+                    onClick={() => markNotificationAsRead(notification.id)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{notification.message}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(notification.timestamp).toLocaleString()}
+                        </p>
+                      </div>
+                      {!notification.read && (
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-2" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Verification Steps */}
         <div className="space-y-4">
-          {verificationSteps.map((step, index) => {
-            const StepIcon = step.icon;
+          {trackerData.steps.map((step, index) => {
+            const StepIcon = getStepIcon();
             return (
               <Card
-                key={step.id}
+                key={index}
                 className={`border-2 ${getStepStyle(step.status)}`}
               >
                 <CardContent className="p-6">
@@ -196,26 +253,28 @@ const FarmerVerificationTracker = () => {
                         className={`
                         w-12 h-12 rounded-full border-2 flex items-center justify-center
                         ${
-                          step.status === "completed"
+                          isStatusCompleted(step.status)
                             ? "bg-black text-white border-black"
-                            : step.status === "in-progress"
+                            : isStatusInProgress(step.status)
                             ? "bg-white text-black border-black"
+                            : isStatusFailed(step.status)
+                            ? "bg-red-100 text-red-500 border-red-500"
                             : "bg-gray-100 text-gray-400 border-gray-300"
                         }
                       `}
                       >
-                        {step.status === "completed" ? (
+                        {isStatusCompleted(step.status) ? (
                           <CheckCircle size={20} />
                         ) : (
                           <StepIcon size={20} />
                         )}
                       </div>
-                      {index < verificationSteps.length - 1 && (
+                      {index < trackerData.steps.length - 1 && (
                         <div
                           className={`
                           w-0.5 h-8
                           ${
-                            step.status === "completed"
+                            isStatusCompleted(step.status)
                               ? "bg-black"
                               : "bg-gray-300"
                           }
@@ -229,10 +288,15 @@ const FarmerVerificationTracker = () => {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="text-lg font-semibold flex items-center gap-2">
-                            {step.title}
-                            {step.status === "in-progress" && (
+                            {step.stepName}
+                            {isStatusInProgress(step.status) && (
                               <span className="text-xs bg-black text-white px-2 py-1 rounded">
                                 IN PROGRESS
+                              </span>
+                            )}
+                            {isStatusFailed(step.status) && (
+                              <span className="text-xs bg-red-500 text-white px-2 py-1 rounded">
+                                FAILED
                               </span>
                             )}
                           </h3>
@@ -242,28 +306,28 @@ const FarmerVerificationTracker = () => {
 
                           {/* Time Information */}
                           <div className="mt-2 text-sm">
-                            {step.status === "completed" &&
-                              step.completedTime && (
+                            {isStatusCompleted(step.status) &&
+                              step.completedAt && (
                                 <p className="text-gray-500">
                                   Estimated time: {step.estimatedTime}{" "}
-                                  (Completed in: {step.completedTime})
+                                  (Completed at: {new Date(Number(step.completedAt)).toLocaleDateString()})
                                 </p>
                               )}
-                            {step.status === "in-progress" && (
+                            {isStatusInProgress(step.status) && (
                               <>
                                 <p className="text-gray-500">
                                   Estimated time: {step.estimatedTime}
                                 </p>
-                                {step.currentDate && (
-                                  <p className="text-black font-medium">
-                                    {step.currentDate}
-                                  </p>
-                                )}
                               </>
                             )}
-                            {step.status === "pending" && (
+                            {isStatusPending(step.status) && (
                               <p className="text-gray-500">
                                 Estimated time: {step.estimatedTime}
+                              </p>
+                            )}
+                            {isStatusFailed(step.status) && step.notes && (
+                              <p className="text-red-600 mt-1">
+                                Note: {step.notes}
                               </p>
                             )}
                           </div>
@@ -276,15 +340,17 @@ const FarmerVerificationTracker = () => {
                             className={`
                             text-sm font-medium
                             ${
-                              step.status === "completed"
+                              isStatusCompleted(step.status)
                                 ? "text-black"
-                                : step.status === "in-progress"
+                                : isStatusInProgress(step.status)
                                 ? "text-black"
+                                : isStatusFailed(step.status)
+                                ? "text-red-500"
                                 : "text-gray-400"
                             }
                           `}
                           >
-                            {getStatusText(step.status)}
+                            {getStepStatusText(getStatusString(step.status) as "completed" | "in-progress" | "pending" | "current")}
                           </span>
                         </div>
                       </div>
@@ -300,15 +366,20 @@ const FarmerVerificationTracker = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
           <Button
             variant="outline"
+            onClick={handleContactSupport}
             className="border-black text-black hover:bg-gray-100"
           >
             Contact Support
           </Button>
-          <Button className="bg-black text-white hover:bg-gray-800 border border-black">
+          <Button 
+            onClick={handleViewProjectDetails}
+            className="bg-black text-white hover:bg-gray-800 border border-black"
+          >
             View Project Details
           </Button>
           <Button
             variant="outline"
+            onClick={handleUpdateInformation}
             className="border-black text-black hover:bg-gray-100"
           >
             Update Information

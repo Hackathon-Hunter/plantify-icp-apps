@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,20 +10,39 @@ import {
   CheckCircle,
   User,
   CreditCard,
+  X,
+  AlertCircle,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useFarmerRegistration } from './handlers';
 
 const FarmerRegistration = () => {
-  const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
-    governmentId: "",
-  });
+  const {
+    // State
+    currentStep,
+    formData,
+    documents,
+    isSubmitting,
+    error,
 
-  const navigateToDashboard = () => router.push('/farmer/dashboard');
+    // Validation
+    isStepValid,
+
+    // Refs
+    governmentIdInputRef,
+    selfieInputRef,
+
+    // Handlers
+    handleInputChange,
+    handleFileUpload,
+    handleRemoveFile,
+    handleNext,
+    handlePrevious,
+    handleSubmitRegistration,
+    triggerGovernmentIdUpload,
+    triggerSelfieUpload,
+    takeSelfie,
+    navigateToDashboard,
+  } = useFarmerRegistration();
 
   const steps = [
     { number: 1, title: "Personal Information", icon: User },
@@ -32,23 +51,7 @@ const FarmerRegistration = () => {
     { number: 4, title: "Registration Complete", icon: CheckCircle },
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleNext = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const ProgressIndicator = () => (
+  const ProgressIndicator = useMemo(() => (
     <div className="flex items-center justify-center mb-8">
       {steps.map((step, index) => (
         <React.Fragment key={step.number}>
@@ -80,9 +83,9 @@ const FarmerRegistration = () => {
         </React.Fragment>
       ))}
     </div>
-  );
+  ), [currentStep]);
 
-  const PersonalInformationStep = () => (
+  const PersonalInformationStep = useMemo(() => (
     <Card className="w-full max-w-md mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold">
@@ -94,8 +97,15 @@ const FarmerRegistration = () => {
         </p>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm flex items-center gap-2">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
         <div>
-          <label className="block text-sm font-medium mb-1">Full Name</label>
+          <label className="block text-sm font-medium mb-1">Full Name *</label>
           <Input
             value={formData.fullName}
             onChange={(e) => handleInputChange("fullName", e.target.value)}
@@ -105,7 +115,7 @@ const FarmerRegistration = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label className="block text-sm font-medium mb-1">Email *</label>
           <Input
             type="email"
             value={formData.email}
@@ -116,7 +126,7 @@ const FarmerRegistration = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Phone Number</label>
+          <label className="block text-sm font-medium mb-1">Phone Number *</label>
           <Input
             type="tel"
             value={formData.phoneNumber}
@@ -128,7 +138,7 @@ const FarmerRegistration = () => {
 
         <div>
           <label className="block text-sm font-medium mb-1">
-            Government ID (Passport/National ID)
+            Government ID (Passport/National ID) *
           </label>
           <Input
             value={formData.governmentId}
@@ -141,16 +151,17 @@ const FarmerRegistration = () => {
         <div className="flex justify-end pt-4">
           <Button
             onClick={handleNext}
-            className="bg-black text-white hover:bg-gray-800 border border-black"
+            disabled={!isStepValid}
+            className="bg-black text-white hover:bg-gray-800 border border-black disabled:bg-gray-400 disabled:border-gray-400"
           >
             Next →
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
+  ), [formData, handleInputChange, handleNext, isStepValid, error]);
 
-  const DocumentUploadStep = () => (
+  const DocumentUploadStep = useMemo(() => (
     <Card className="w-full max-w-md mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold">Government ID Photo</CardTitle>
@@ -158,12 +169,53 @@ const FarmerRegistration = () => {
           Please upload a clear photo of your passport or national ID card
         </p>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="border-2 border-dashed border-black rounded-lg p-8 text-center">
-          <Upload size={48} className="mx-auto mb-4 text-gray-400" />
-          <p className="text-sm font-medium mb-2">Click to upload photo</p>
-          <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+      <CardContent className="p-6 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm flex items-center gap-2">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
+        <div 
+          className="border-2 border-dashed border-black rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50"
+          onClick={triggerGovernmentIdUpload}
+        >
+          {documents.governmentIdPhoto.preview ? (
+            <div className="relative">
+              <img 
+                src={documents.governmentIdPhoto.preview} 
+                alt="Government ID" 
+                className="max-w-full max-h-48 mx-auto rounded"
+              />
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveFile('governmentIdPhoto');
+                }}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Upload size={48} className="mx-auto mb-4 text-gray-400" />
+              <p className="text-sm font-medium mb-2">Click to upload photo</p>
+              <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+            </>
+          )}
         </div>
+
+        <input
+          ref={governmentIdInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleFileUpload('governmentIdPhoto', e.target.files)}
+          className="hidden"
+        />
 
         <div className="flex justify-between pt-6">
           <Button
@@ -175,16 +227,27 @@ const FarmerRegistration = () => {
           </Button>
           <Button
             onClick={handleNext}
-            className="bg-black text-white hover:bg-gray-800 border border-black"
+            disabled={!isStepValid}
+            className="bg-black text-white hover:bg-gray-800 border border-black disabled:bg-gray-400 disabled:border-gray-400"
           >
             Next →
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
+  ), [
+    documents.governmentIdPhoto,
+    error,
+    triggerGovernmentIdUpload,
+    handleFileUpload,
+    handleRemoveFile,
+    handleNext,
+    handlePrevious,
+    isStepValid,
+    governmentIdInputRef,
+  ]);
 
-  const SelfieStep = () => (
+  const SelfieStep = useMemo(() => (
     <Card className="w-full max-w-md mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold">Selfie Photo</CardTitle>
@@ -192,13 +255,73 @@ const FarmerRegistration = () => {
           Take a selfie or upload a recent photo of yourself for verification
         </p>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="border-2 border-dashed border-black rounded-lg p-8 text-center">
-          <Camera size={48} className="mx-auto mb-4 text-gray-400" />
-          <p className="text-sm font-medium mb-2">Take a selfie</p>
-          <p className="text-xs text-gray-500">
-            Click here to use camera or upload photo
-          </p>
+      <CardContent className="p-6 space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm flex items-center gap-2">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
+        <div 
+          className="border-2 border-dashed border-black rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50"
+          onClick={triggerSelfieUpload}
+        >
+          {documents.selfiePhoto.preview ? (
+            <div className="relative">
+              <img 
+                src={documents.selfiePhoto.preview} 
+                alt="Selfie" 
+                className="max-w-full max-h-48 mx-auto rounded"
+              />
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveFile('selfiePhoto');
+                }}
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Camera size={48} className="mx-auto mb-4 text-gray-400" />
+              <p className="text-sm font-medium mb-2">Take a selfie</p>
+              <p className="text-xs text-gray-500">
+                Click here to use camera or upload photo
+              </p>
+            </>
+          )}
+        </div>
+
+        <input
+          ref={selfieInputRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleFileUpload('selfiePhoto', e.target.files)}
+          className="hidden"
+        />
+
+        <div className="flex gap-2">
+          <Button
+            onClick={takeSelfie}
+            variant="outline"
+            className="flex-1 border-black text-black hover:bg-gray-100"
+          >
+            <Camera size={16} className="mr-2" />
+            Use Camera
+          </Button>
+          <Button
+            onClick={triggerSelfieUpload}
+            variant="outline"
+            className="flex-1 border-black text-black hover:bg-gray-100"
+          >
+            <Upload size={16} className="mr-2" />
+            Upload Photo
+          </Button>
         </div>
 
         <div className="flex justify-between pt-6">
@@ -210,17 +333,30 @@ const FarmerRegistration = () => {
             Previous
           </Button>
           <Button
-            onClick={handleNext}
-            className="bg-black text-white hover:bg-gray-800 border border-black"
+            onClick={handleSubmitRegistration}
+            disabled={!isStepValid || isSubmitting}
+            className="bg-black text-white hover:bg-gray-800 border border-black disabled:bg-gray-400 disabled:border-gray-400"
           >
-            Submit Registration
+            {isSubmitting ? 'Submitting...' : 'Submit Registration'}
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
+  ), [
+    documents.selfiePhoto,
+    error,
+    triggerSelfieUpload,
+    handleFileUpload,
+    handleRemoveFile,
+    takeSelfie,
+    handlePrevious,
+    handleSubmitRegistration,
+    isStepValid,
+    isSubmitting,
+    selfieInputRef,
+  ]);
 
-  const CompletionStep = () => (
+  const CompletionStep = useMemo(() => (
     <Card className="w-full max-w-md mx-auto border-2 border-black">
       <CardContent className="p-8 text-center">
         <CheckCircle size={64} className="mx-auto mb-4 text-black" />
@@ -240,25 +376,28 @@ const FarmerRegistration = () => {
           </ul>
         </div>
 
-        <Button className="w-full bg-black text-white hover:bg-gray-800 border border-black" onClick={navigateToDashboard}>
+        <Button 
+          className="w-full bg-black text-white hover:bg-gray-800 border border-black" 
+          onClick={navigateToDashboard}
+        >
           Go to Dashboard
         </Button>
       </CardContent>
     </Card>
-  );
+  ), [navigateToDashboard]);
 
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return <PersonalInformationStep />;
+        return PersonalInformationStep;
       case 2:
-        return <DocumentUploadStep />;
+        return DocumentUploadStep;
       case 3:
-        return <SelfieStep />;
+        return SelfieStep;
       case 4:
-        return <CompletionStep />;
+        return CompletionStep;
       default:
-        return <PersonalInformationStep />;
+        return PersonalInformationStep;
     }
   };
 
@@ -275,7 +414,7 @@ const FarmerRegistration = () => {
       </div>
 
       {/* Progress Indicator */}
-      <ProgressIndicator />
+      {ProgressIndicator}
 
       {/* Current Step Content */}
       {renderCurrentStep()}

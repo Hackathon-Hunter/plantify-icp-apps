@@ -1,32 +1,28 @@
 'use client'
 
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, User, TrendingUp } from "lucide-react";
+import { CheckCircle, User, TrendingUp, AlertCircle } from "lucide-react";
+import { useInvestorRegistrationHandlers } from "./handlers";
 
 const InvestorRegistration = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-  });
+  const {
+    state,
+    formData,
+    isFormValid,
+    handleInputChange,
+    handleRegistration,
+    handleExploreProjects,
+    handleCompleteProfile,
+    handleRetry,
+  } = useInvestorRegistrationHandlers();
 
   const steps = [
     { number: 1, title: "Basic Information", icon: User },
     { number: 2, title: "Registration Complete", icon: CheckCircle },
   ];
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleNext = () => {
-    if (currentStep < 2) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
 
   const ProgressIndicator = () => (
     <div className="flex items-center justify-center mb-8">
@@ -37,7 +33,7 @@ const InvestorRegistration = () => {
               className={`
               w-12 h-12 rounded-full border-2 flex items-center justify-center
               ${
-                currentStep >= step.number
+                state.currentStep >= step.number
                   ? "bg-black text-white border-black"
                   : "bg-white text-black border-gray-300"
               }
@@ -53,7 +49,7 @@ const InvestorRegistration = () => {
             <div
               className={`
               w-16 h-0.5 mx-2 mt-6
-              ${currentStep > step.number ? "bg-black" : "bg-gray-300"}
+              ${state.currentStep > step.number ? "bg-black" : "bg-gray-300"}
             `}
             />
           )}
@@ -123,10 +119,33 @@ const InvestorRegistration = () => {
           </ul>
         </div>
 
+        {/* Error Display */}
+        {state.error && (
+          <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} className="text-red-500" />
+              <p className="text-sm text-red-600">{state.error}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              className="mt-2 text-xs"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+
         {/* Terms Agreement */}
         <div className="space-y-2">
           <label className="flex items-start space-x-2">
-            <input type="checkbox" className="rounded border-black mt-1" />
+            <input 
+              type="checkbox" 
+              className="rounded border-black mt-1"
+              checked={formData.agreeToTerms}
+              onChange={(e) => handleInputChange('agreeToTerms', e.target.checked)}
+            />
             <span className="text-sm">
               I agree to the{" "}
               <span className="underline">Terms & Conditions</span> and{" "}
@@ -134,7 +153,12 @@ const InvestorRegistration = () => {
             </span>
           </label>
           <label className="flex items-start space-x-2">
-            <input type="checkbox" className="rounded border-black mt-1" />
+            <input 
+              type="checkbox" 
+              className="rounded border-black mt-1"
+              checked={formData.subscribeToUpdates}
+              onChange={(e) => handleInputChange('subscribeToUpdates', e.target.checked)}
+            />
             <span className="text-sm">
               I want to receive updates about new investment opportunities
             </span>
@@ -143,11 +167,18 @@ const InvestorRegistration = () => {
 
         <div className="flex justify-end pt-4">
           <Button
-            onClick={handleNext}
+            onClick={handleRegistration}
             className="bg-black text-white hover:bg-gray-800 border border-black"
-            disabled={!formData.fullName || !formData.email}
+            disabled={!isFormValid || state.isLoading}
           >
-            Create Account →
+            {state.isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                Creating Account...
+              </div>
+            ) : (
+              "Create Account →"
+            )}
           </Button>
         </div>
       </CardContent>
@@ -202,11 +233,15 @@ const InvestorRegistration = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button className="bg-black text-white hover:bg-gray-800 border border-black">
+          <Button 
+            onClick={handleExploreProjects}
+            className="bg-black text-white hover:bg-gray-800 border border-black"
+          >
             Explore Projects
           </Button>
           <Button
             variant="outline"
+            onClick={handleCompleteProfile}
             className="border-black text-black hover:bg-gray-100"
           >
             Complete Profile
@@ -217,7 +252,7 @@ const InvestorRegistration = () => {
   );
 
   const renderCurrentStep = () => {
-    switch (currentStep) {
+    switch (state.currentStep) {
       case 1:
         return <BasicInformationStep />;
       case 2:

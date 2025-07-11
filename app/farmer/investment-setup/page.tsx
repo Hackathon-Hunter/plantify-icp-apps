@@ -1,47 +1,54 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, CheckCircle, MapPin, Briefcase, DollarSign, FileText, Target } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Upload, CheckCircle, MapPin, Briefcase, DollarSign, FileText, Target, Loader2, AlertCircle, X } from 'lucide-react';
+import { useInvestmentSetupForm } from './handlers';
 
 const FarmerInvestmentSetup = () => {
-  const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    cropType: '',
-    country: '',
-    stateProvince: '',
-    cityDistrict: '',
-    gpsCoordinates: '',
-    farmSize: '',
-    landOwnership: '',
-    waterSource: '',
-    accessRoads: '',
-    fundingRequired: '',
-    farmingExperience: '',
-    harvestTimeline: '',
-    expectedYield: '',
-    cultivationMethod: '',
-    investmentDescription: '',
-    marketDistribution: [],
-    budgetAllocation: {
-      seeds: 15,
-      fertilizers: 20,
-      labor: 30,
-      equipment: 15,
-      operational: 10,
-      infrastructure: 5,
-      insurance: 5
-    },
-    documents: [],
-    agreements: []
-  });
+  const {
+    // State
+    currentStep,
+    loading,
+    error,
+    success,
+    formData,
+    fileInputRef,
 
-  const navigateToDashboard = () => router.push('/farmer/dashboard');
+    // Utility functions
+    getCropTypeFromString,
+    getLandOwnershipFromString,
+    getAccessRoadFromString,
+    getExperienceLevelFromString,
+    getHarvestTimelineFromString,
+    getCultivationMethodFromString,
+    getMarketDistributionOption,
+    isEqualMarketDistribution,
+
+    // Form handlers
+    handleInputChange,
+    handleBudgetChange,
+    handleAgreementChange,
+    handleMarketDistributionChange,
+    handlePhotoUpload,
+    handleRemovePhoto,
+    handleDragOver,
+    handleDrop,
+
+    // Navigation
+    handleNext,
+    handlePrevious,
+    navigateToDashboard,
+
+    // Form submission
+    handleSubmit,
+
+    // Validation
+    validateStep,
+  } = useInvestmentSetupForm();
 
   const steps = [
     { number: 1, title: 'Farm Info', icon: MapPin },
@@ -51,22 +58,6 @@ const FarmerInvestmentSetup = () => {
     { number: 5, title: 'Complete', icon: CheckCircle }
   ];
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleNext = () => {
-    if (currentStep < 5) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
   const ProgressIndicator = () => (
     <div className="flex items-center justify-center mb-8">
       {steps.map((step, index) => (
@@ -74,8 +65,8 @@ const FarmerInvestmentSetup = () => {
           <div className="flex flex-col items-center">
             <div className={`
               w-12 h-12 rounded-full border-2 flex items-center justify-center
-              ${currentStep >= step.number 
-                ? 'bg-black text-white border-black' 
+              ${currentStep >= step.number
+                ? 'bg-black text-white border-black'
                 : 'bg-white text-black border-gray-300'
               }
             `}>
@@ -100,7 +91,7 @@ const FarmerInvestmentSetup = () => {
     </div>
   );
 
-  const FarmInfoStep = () => (
+  const FarmInfoStep = useMemo(() => (
     <Card className="w-full max-w-2xl mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold flex items-center justify-center gap-2">
@@ -111,104 +102,179 @@ const FarmerInvestmentSetup = () => {
       <CardContent className="p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Crop Type</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select crop type</option>
-              <option>Rice</option>
-              <option>Corn</option>
-              <option>Vegetables</option>
-              <option>Fruits</option>
+            <label className="block text-sm font-medium mb-1">Crop Type *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.cropType ? Object.keys(formData.cropType)[0] : ''}
+              onChange={(e) => handleInputChange('cropType', getCropTypeFromString(e.target.value))}
+            >
+              <option value="">Select crop type</option>
+              <option value="Rice">Rice</option>
+              <option value="Corn">Corn</option>
+              <option value="Vegetables">Vegetables</option>
+              <option value="Fruits">Fruits</option>
+              <option value="Coffee">Coffee</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Country</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select country</option>
-              <option>Indonesia</option>
-              <option>Malaysia</option>
-              <option>Thailand</option>
+            <label className="block text-sm font-medium mb-1">Country *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.country}
+              onChange={(e) => handleInputChange('country', e.target.value)}
+            >
+              <option value="">Select country</option>
+              <option value="Indonesia">Indonesia</option>
+              <option value="Malaysia">Malaysia</option>
+              <option value="Thailand">Thailand</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">State/Province</label>
+            <label className="block text-sm font-medium mb-1">State/Province *</label>
             <Input
               placeholder="Enter state/province"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.stateProvince}
+              onChange={(e) => handleInputChange('stateProvince', e.target.value)}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">City/District</label>
+            <label className="block text-sm font-medium mb-1">City/District *</label>
             <Input
               placeholder="Enter city/district"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.cityDistrict}
+              onChange={(e) => handleInputChange('cityDistrict', e.target.value)}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">GPS Coordinates (Auto-detect)</label>
+            <label className="block text-sm font-medium mb-1">GPS Coordinates (Optional)</label>
             <Input
               placeholder="Auto-detected or enter manually"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.gpsCoordinates}
+              onChange={(e) => handleInputChange('gpsCoordinates', e.target.value)}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Farm Size (hectares/acres)</label>
+            <label className="block text-sm font-medium mb-1">Farm Size *</label>
             <Input
-              placeholder="Enter farm size"
+              placeholder="Enter farm size (e.g., 5.5 hectares)"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.farmSize}
+              onChange={(e) => handleInputChange('farmSize', e.target.value)}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Land Ownership Status</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select ownership status</option>
-              <option>Owned</option>
-              <option>Leased</option>
-              <option>Partnership</option>
+            <label className="block text-sm font-medium mb-1">Land Ownership Status *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.landOwnership ? Object.keys(formData.landOwnership)[0] : ''}
+              onChange={(e) => handleInputChange('landOwnership', getLandOwnershipFromString(e.target.value))}
+            >
+              <option value="">Select ownership status</option>
+              <option value="Owned">Owned</option>
+              <option value="Leased">Leased</option>
+              <option value="Partnership">Partnership</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Access Roads</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select road condition</option>
-              <option>Good</option>
-              <option>Fair</option>
-              <option>Poor</option>
+            <label className="block text-sm font-medium mb-1">Access Roads *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.accessRoads ? Object.keys(formData.accessRoads)[0] : ''}
+              onChange={(e) => handleInputChange('accessRoads', getAccessRoadFromString(e.target.value))}
+            >
+              <option value="">Select road condition</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Poor">Poor</option>
             </select>
           </div>
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Water Source/Irrigation</label>
+          <label className="block text-sm font-medium mb-1">Water Source/Irrigation *</label>
           <Input
             placeholder="Describe water source and irrigation system"
             className="border-black focus:ring-black focus:border-black"
+            value={formData.waterSource}
+            onChange={(e) => handleInputChange('waterSource', e.target.value)}
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Funding Required (USD)</label>
+          <label className="block text-sm font-medium mb-1">Funding Required (USD) *</label>
           <Input
             placeholder="Enter total funding needed"
             className="border-black focus:ring-black focus:border-black"
+            value={formData.fundingRequired}
+            onChange={(e) => handleInputChange('fundingRequired', e.target.value)}
           />
         </div>
         
         <div>
           <label className="block text-sm font-medium mb-1">Farm Photos (3-5 images)</label>
-          <div className="border-2 border-dashed border-black rounded-lg p-8 text-center">
+          <div 
+            className="border-2 border-dashed border-black rounded-lg p-8 text-center cursor-pointer"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
             <Upload size={48} className="mx-auto mb-4 text-gray-400" />
             <p className="text-sm font-medium mb-2">Drag & drop farm photos here</p>
-            <Button variant="outline" className="border-black text-black hover:bg-gray-100">
+            <Button 
+              variant="outline" 
+              className="border-black text-black hover:bg-gray-100"
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
               Choose Files
             </Button>
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              multiple 
+              accept="image/*" 
+              onChange={(e) => handlePhotoUpload(e.target.files)} 
+              className="hidden"
+            />
           </div>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {formData.farmPhotos.map((photo, index) => (
+              <div key={index} className="relative group">
+                <img 
+                  src={URL.createObjectURL(photo)} 
+                  alt={`Farm photo ${index + 1}`} 
+                  className="w-full h-24 object-cover rounded-md"
+                />
+                <button 
+                  onClick={() => handleRemovePhoto(index)}
+                  className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  title="Remove photo"
+                  type="button"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          {formData.farmPhotos.length > 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              {formData.farmPhotos.length} of 3-5 photos uploaded
+            </p>
+          )}
+          {formData.farmPhotos.length < 3 && (
+            <p className="text-sm text-red-600 mt-2">
+              Please upload at least 3 photos (currently {formData.farmPhotos.length})
+            </p>
+          )}
         </div>
         
         <div className="flex justify-end pt-4">
@@ -221,9 +287,9 @@ const FarmerInvestmentSetup = () => {
         </div>
       </CardContent>
     </Card>
-  );
+  ), [formData, handleInputChange, handleNext, handlePhotoUpload, handleRemovePhoto, handleDragOver, handleDrop, fileInputRef, getCropTypeFromString, getLandOwnershipFromString, getAccessRoadFromString]);
 
-  const ExperienceStep = () => (
+  const ExperienceStep = useMemo(() => (
     <Card className="w-full max-w-2xl mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold flex items-center justify-center gap-2">
@@ -234,46 +300,60 @@ const FarmerInvestmentSetup = () => {
       <CardContent className="p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Farming Experience</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select experience level</option>
-              <option>Beginner (0-2 years)</option>
-              <option>Intermediate (3-5 years)</option>
-              <option>Experienced (5+ years)</option>
+            <label className="block text-sm font-medium mb-1">Farming Experience *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.farmingExperience ? Object.keys(formData.farmingExperience)[0] : ''}
+              onChange={(e) => handleInputChange('farmingExperience', getExperienceLevelFromString(e.target.value))}
+            >
+              <option value="">Select experience level</option>
+              <option value="Beginner">Beginner (0-2 years)</option>
+              <option value="Intermediate">Intermediate (3-5 years)</option>
+              <option value="Experienced">Experienced (5+ years)</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Harvest Timeline (months)</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select timeline</option>
-              <option>3-4 months</option>
-              <option>6-8 months</option>
-              <option>12+ months</option>
+            <label className="block text-sm font-medium mb-1">Harvest Timeline *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.harvestTimeline ? Object.keys(formData.harvestTimeline)[0] : ''}
+              onChange={(e) => handleInputChange('harvestTimeline', getHarvestTimelineFromString(e.target.value))}
+            >
+              <option value="">Select timeline</option>
+              <option value="Short">3-4 months</option>
+              <option value="Medium">6-8 months</option>
+              <option value="Long">12+ months</option>
             </select>
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Expected Yield (tons/kg)</label>
+            <label className="block text-sm font-medium mb-1">Expected Yield *</label>
             <Input
-              placeholder="Expected yield amount"
+              placeholder="Expected yield amount (e.g., 7 tons per hectare)"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.expectedYield}
+              onChange={(e) => handleInputChange('expectedYield', e.target.value)}
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium mb-1">Cultivation Method</label>
-            <select className="w-full p-2 border border-black rounded focus:ring-black focus:border-black">
-              <option>Select cultivation method</option>
-              <option>Organic</option>
-              <option>Conventional</option>
-              <option>Hydroponic</option>
+            <label className="block text-sm font-medium mb-1">Cultivation Method *</label>
+            <select 
+              className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+              value={formData.cultivationMethod ? Object.keys(formData.cultivationMethod)[0] : ''}
+              onChange={(e) => handleInputChange('cultivationMethod', getCultivationMethodFromString(e.target.value))}
+            >
+              <option value="">Select cultivation method</option>
+              <option value="Organic">Organic</option>
+              <option value="Conventional">Conventional</option>
+              <option value="Hydroponic">Hydroponic</option>
             </select>
           </div>
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Market Distribution Plan (multiple selection)</label>
+          <label className="block text-sm font-medium mb-1">Market Distribution Plan * (Select at least one)</label>
           <div className="grid grid-cols-2 gap-2 mt-2">
             {[
               'Local markets',
@@ -284,7 +364,12 @@ const FarmerInvestmentSetup = () => {
               'Contract farming agreements'
             ].map(option => (
               <label key={option} className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded border-black" />
+                <input 
+                  type="checkbox" 
+                  className="rounded border-black" 
+                  checked={formData.marketDistribution.some(item => isEqualMarketDistribution(item, getMarketDistributionOption(option)!))}
+                  onChange={(e) => handleMarketDistributionChange(option, e.target.checked)}
+                />
                 <span className="text-sm">{option}</span>
               </label>
             ))}
@@ -292,11 +377,13 @@ const FarmerInvestmentSetup = () => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium mb-1">Investment Description (max 200 words)</label>
+          <label className="block text-sm font-medium mb-1">Investment Description * (max 200 words)</label>
           <textarea
             placeholder="Brief overview of your farming plan, goals, and why investors should support this opportunity..."
             rows={4}
             className="w-full p-2 border border-black rounded focus:ring-black focus:border-black"
+            value={formData.investmentDescription}
+            onChange={(e) => handleInputChange('investmentDescription', e.target.value)}
           />
         </div>
         
@@ -317,9 +404,9 @@ const FarmerInvestmentSetup = () => {
         </div>
       </CardContent>
     </Card>
-  );
+  ), [formData, handleInputChange, handleNext, handlePrevious, handleMarketDistributionChange, getExperienceLevelFromString, getHarvestTimelineFromString, getCultivationMethodFromString, isEqualMarketDistribution, getMarketDistributionOption]);
 
-  const BudgetStep = () => (
+  const BudgetStep = useMemo(() => (
     <Card className="w-full max-w-2xl mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold flex items-center justify-center gap-2">
@@ -332,26 +419,27 @@ const FarmerInvestmentSetup = () => {
           <label className="block text-sm font-medium mb-3">Financial Breakdown (Auto-calculate percentages)</label>
           <div className="space-y-3">
             {[
-              { label: 'Seeds/Seedlings', value: 15, color: 'bg-green-500' },
-              { label: 'Fertilizers/Pesticides', value: 20, color: 'bg-blue-500' },
-              { label: 'Labor Costs', value: 30, color: 'bg-purple-500' },
-              { label: 'Equipment/Tools', value: 15, color: 'bg-orange-500' },
-              { label: 'Operational Expenses', value: 10, color: 'bg-red-500' },
-              { label: 'Infrastructure/Irrigation', value: 5, color: 'bg-teal-500' },
-              { label: 'Insurance & Contingency', value: 5, color: 'bg-yellow-500' }
+              { key: 'seeds', label: 'Seeds/Seedlings', color: 'bg-green-500' },
+              { key: 'fertilizers', label: 'Fertilizers/Pesticides', color: 'bg-blue-500' },
+              { key: 'labor', label: 'Labor Costs', color: 'bg-purple-500' },
+              { key: 'equipment', label: 'Equipment/Tools', color: 'bg-orange-500' },
+              { key: 'operational', label: 'Operational Expenses', color: 'bg-red-500' },
+              { key: 'infrastructure', label: 'Infrastructure/Irrigation', color: 'bg-teal-500' },
+              { key: 'insurance', label: 'Insurance & Contingency', color: 'bg-yellow-500' }
             ].map(item => (
-              <div key={item.label} className="flex items-center space-x-3">
+              <div key={item.key} className="flex items-center space-x-3">
                 <div className="w-8">
                   <Input 
-                    value={item.value} 
+                    value={formData.budgetAllocation[item.key as keyof typeof formData.budgetAllocation]} 
                     className="text-xs p-1 border-black"
+                    onChange={(e) => handleBudgetChange(item.key, parseInt(e.target.value) || 0)}
                   />
                 </div>
                 <span className="text-sm">%</span>
                 <div className="flex-1 bg-gray-200 rounded h-4">
                   <div 
                     className={`${item.color} h-full rounded`} 
-                    style={{ width: `${item.value}%` }}
+                    style={{ width: `${formData.budgetAllocation[item.key as keyof typeof formData.budgetAllocation]}%` }}
                   />
                 </div>
                 <span className="text-sm w-32">{item.label}</span>
@@ -359,7 +447,14 @@ const FarmerInvestmentSetup = () => {
             ))}
           </div>
           <div className="mt-3 p-2 bg-gray-100 rounded">
-            <span className="text-sm font-medium">Platform Fee (Auto-calculated): 0%</span>
+            <span className="text-sm font-medium">
+              Total: {Object.values(formData.budgetAllocation).reduce((sum, val) => sum + val, 0)}%
+            </span>
+            {Object.values(formData.budgetAllocation).reduce((sum, val) => sum + val, 0) !== 100 && (
+              <span className="text-red-500 text-xs ml-2">
+                (Budget must total 100%)
+              </span>
+            )}
           </div>
         </div>
         
@@ -367,17 +462,28 @@ const FarmerInvestmentSetup = () => {
           <label className="block text-sm font-medium mb-2">Budget Validation</label>
           <div className="space-y-2">
             <label className="flex items-center space-x-2">
-              <input type="checkbox" className="rounded border-black" />
-              <span className="text-sm">Do you have a business bank account? (Yes/No)</span>
+              <input 
+                type="checkbox" 
+                className="rounded border-black" 
+                checked={formData.hasBusinessBankAccount}
+                onChange={(e) => handleInputChange('hasBusinessBankAccount', e.target.checked)}
+              />
+              <span className="text-sm">Do you have a business bank account?</span>
             </label>
             
             <div>
-              <label className="block text-sm font-medium mb-1">Previous farming loans/credits? (Yes/No/NA)</label>
-              <select className="w-full p-2 border border-black rounded">
-                <option>Select option</option>
-                <option>Yes</option>
-                <option>No</option>
-                <option>Not Applicable</option>
+              <label className="block text-sm font-medium mb-1">Previous farming loans/credits?</label>
+              <select 
+                className="w-full p-2 border border-black rounded"
+                value={formData.previousFarmingLoans === null ? '' : formData.previousFarmingLoans ? 'Yes' : 'No'}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  handleInputChange('previousFarmingLoans', value === 'Yes' ? true : value === 'No' ? false : null);
+                }}
+              >
+                <option value="">Select option</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
               </select>
             </div>
           </div>
@@ -385,14 +491,18 @@ const FarmerInvestmentSetup = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Emergency Contact Name & Phone</label>
+            <label className="block text-sm font-medium mb-1">Emergency Contact</label>
             <Input
               placeholder="Emergency contact name"
               className="border-black focus:ring-black focus:border-black mb-2"
+              value={formData.emergencyContactName}
+              onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
             />
             <Input
               placeholder="Emergency phone number"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.emergencyContactPhone}
+              onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
             />
           </div>
           
@@ -401,10 +511,14 @@ const FarmerInvestmentSetup = () => {
             <Input
               placeholder="Minimum ROI %"
               className="border-black focus:ring-black focus:border-black mb-2"
+              value={formData.expectedMinROI}
+              onChange={(e) => handleInputChange('expectedMinROI', e.target.value)}
             />
             <Input
               placeholder="Maximum ROI %"
               className="border-black focus:ring-black focus:border-black"
+              value={formData.expectedMaxROI}
+              onChange={(e) => handleInputChange('expectedMaxROI', e.target.value)}
             />
           </div>
         </div>
@@ -426,9 +540,9 @@ const FarmerInvestmentSetup = () => {
         </div>
       </CardContent>
     </Card>
-  );
+  ), [formData, handleInputChange, handleBudgetChange, handleNext, handlePrevious]);
 
-  const DocumentsStep = () => (
+  const DocumentsStep = useMemo(() => (
     <Card className="w-full max-w-2xl mx-auto border-2 border-black">
       <CardHeader className="text-center border-b border-black">
         <CardTitle className="text-xl font-bold flex items-center justify-center gap-2">
@@ -450,7 +564,7 @@ const FarmerInvestmentSetup = () => {
                 <p className="text-sm">Upload land certificate/title deed or lease agreement</p>
               </div>
             </div>
-            
+
             <div className="border border-black rounded p-3">
               <div className="flex items-center space-x-2 mb-2">
                 <FileText size={16} />
@@ -463,7 +577,7 @@ const FarmerInvestmentSetup = () => {
             </div>
           </div>
         </div>
-        
+
         <div>
           <h3 className="font-semibold mb-3">Supporting Evidence (Optional but Recommended)</h3>
           <div className="space-y-4">
@@ -486,7 +600,7 @@ const FarmerInvestmentSetup = () => {
             ))}
           </div>
         </div>
-        
+
         <div>
           <h3 className="font-semibold mb-3">Legal Agreements</h3>
           <div className="space-y-2">
@@ -496,9 +610,14 @@ const FarmerInvestmentSetup = () => {
               'I consent to verification site visit',
               'I agree to transparent progress reporting',
               'I understand profit-sharing obligations'
-            ].map(agreement => (
+            ].map((agreement, index) => (
               <label key={agreement} className="flex items-start space-x-2">
-                <input type="checkbox" className="rounded border-black mt-1" />
+                <input 
+                  type="checkbox" 
+                  className="rounded border-black mt-1" 
+                  checked={formData.agreements[index]}
+                  onChange={(e) => handleAgreementChange(index, e.target.checked)}
+                />
                 <span className="text-sm">{agreement}</span>
               </label>
             ))}
@@ -514,25 +633,58 @@ const FarmerInvestmentSetup = () => {
             ← Previous
           </Button>
           <Button 
-            onClick={handleNext}
+            onClick={handleSubmit}
             className="bg-black text-white hover:bg-gray-800 border border-black"
+            disabled={loading}
           >
-            Submit Investment Setup ✓
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Investment Setup ✓'
+            )}
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
+  ), [formData.agreements, handleAgreementChange, handlePrevious, handleSubmit, loading]);
 
-  const CompletionStep = () => (
+  const CompletionStep = useMemo(() => (
     <Card className="w-full max-w-2xl mx-auto border-2 border-black">
       <CardContent className="p-8 text-center">
         <CheckCircle size={64} className="mx-auto mb-4 text-black" />
-        <h2 className="text-2xl font-bold mb-2">Investment Setup Complete!</h2>
+        <h2 className="text-2xl font-bold mb-2">
+          {success ? 'Investment Setup Complete!' : 'Ready to Submit!'}
+        </h2>
         <p className="text-gray-600 mb-6">
-          Your farm investment opportunity has been successfully created and submitted for 
-          review. Our team will verify your information and make it available to potential investors.
+          {success 
+            ? 'Your farm investment opportunity has been successfully created and submitted for review. Our team will verify your information and make it available to potential investors.'
+            : 'Please review your information below and submit your investment setup when ready.'
+          }
         </p>
+        
+        {/* Summary of submitted data */}
+        {!success && (
+          <div className="text-left bg-gray-50 p-4 rounded border mb-6">
+            <h3 className="font-semibold mb-2">Investment Summary</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p><strong>Crop Type:</strong> {formData.cropType ? Object.keys(formData.cropType)[0] : 'Not selected'}</p>
+                <p><strong>Location:</strong> {formData.cityDistrict}, {formData.stateProvince}</p>
+                <p><strong>Farm Size:</strong> {formData.farmSize}</p>
+                <p><strong>Funding Required:</strong> ${formData.fundingRequired}</p>
+              </div>
+              <div>
+                <p><strong>Experience Level:</strong> {formData.farmingExperience ? Object.keys(formData.farmingExperience)[0] : 'Not selected'}</p>
+                <p><strong>Cultivation Method:</strong> {formData.cultivationMethod ? Object.keys(formData.cultivationMethod)[0] : 'Not selected'}</p>
+                <p><strong>Expected ROI:</strong> {formData.expectedMinROI}% - {formData.expectedMaxROI}%</p>
+                <p><strong>Market Distribution:</strong> {formData.marketDistribution.length} option(s) selected</p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="border border-black rounded p-4">
@@ -570,34 +722,63 @@ const FarmerInvestmentSetup = () => {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button className="bg-black text-white hover:bg-gray-800 border border-black" onClick={navigateToDashboard}>
-            View My Projects
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-black text-black hover:bg-gray-100"
-          >
-            Create Another Project
-          </Button>
+          {success ? (
+            <>
+              <Button className="bg-black text-white hover:bg-gray-800 border border-black" onClick={navigateToDashboard}>
+                View My Projects
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-black text-black hover:bg-gray-100"
+                onClick={() => window.location.reload()}
+              >
+                Create Another Project
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                onClick={handlePrevious}
+                variant="outline"
+                className="border-black text-black hover:bg-gray-100"
+              >
+                ← Back to Review
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                className="bg-black text-white hover:bg-gray-800 border border-black"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Investment Setup ✓'
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
-  );
+  ), [success, formData, navigateToDashboard, handlePrevious, handleSubmit, loading]);
 
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 1:
-        return <FarmInfoStep />;
+        return FarmInfoStep;
       case 2:
-        return <ExperienceStep />;
+        return ExperienceStep;
       case 3:
-        return <BudgetStep />;
+        return BudgetStep;
       case 4:
-        return <DocumentsStep />;
+        return DocumentsStep;
       case 5:
-        return <CompletionStep />;
+        return CompletionStep;
       default:
-        return <FarmInfoStep />;
+        return FarmInfoStep;
     }
   };
 
@@ -616,6 +797,20 @@ const FarmerInvestmentSetup = () => {
 
       {/* Current Step Content */}
       {renderCurrentStep()}
+
+      {/* Error/Success Messages */}
+      {error && (
+        <div className="mt-4 p-3 bg-red-100 text-red-800 rounded-md flex items-center">
+          <AlertCircle className="mr-2 h-5 w-5" />
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="mt-4 p-3 bg-green-100 text-green-800 rounded-md flex items-center">
+          <CheckCircle className="mr-2 h-5 w-5" />
+          Investment setup submitted successfully!
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,80 +12,119 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
+import { 
+  farmTrackingHandlers, 
+  ProjectTrackingData, 
+  GrowthTimelineStage,
+  FinancialProjection
+} from "./handlers";
+import { WeatherData, FarmActivity, FarmPhoto } from "@/service/farmerService";
 
 const FarmTrackingPage = () => {
   const [activeTab, setActiveTab] = useState("growth-timeline");
+  const [projectData, setProjectData] = useState<ProjectTrackingData | null>(null);
+  const [growthTimeline, setGrowthTimeline] = useState<GrowthTimelineStage[]>([]);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [farmActivities, setFarmActivities] = useState<FarmActivity[]>([]);
+  const [farmPhotos, setFarmPhotos] = useState<FarmPhoto[]>([]);
+  const [financialProjection, setFinancialProjection] = useState<FinancialProjection | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const projectData = {
-    title: "Apple Orchard #001",
-    location: "Batu, Malang, East Java",
-    status: "Flowering",
-    statusColor: "text-green-600",
-    completionPercentage: 65,
-    currentStage: "Flowering",
-    expectedYield: "75 kg",
-    yieldProgress: "+4% vs projection",
-    estimatedValue: "IDR 1,875,000",
-    valueChange: "+2% YTD",
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = parseInt(urlParams.get('projectId') || '1');
+
+        const [
+          project,
+          timeline,
+          weather,
+          activities,
+          photos,
+          financial
+        ] = await Promise.all([
+          farmTrackingHandlers.fetchProjectTracking(projectId),
+          farmTrackingHandlers.fetchGrowthTimeline(projectId),
+          farmTrackingHandlers.fetchWeatherData(),
+          farmTrackingHandlers.fetchFarmActivities(projectId),
+          farmTrackingHandlers.fetchFarmPhotos(projectId),
+          farmTrackingHandlers.fetchFinancialProjection(projectId)
+        ]);
+
+        setProjectData(project);
+        setGrowthTimeline(timeline);
+        setWeatherData(weather);
+        setFarmActivities(activities);
+        setFarmPhotos(photos);
+        setFinancialProjection(financial);
+      } catch (error) {
+        console.error('Error loading farm tracking data:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load farm tracking data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleSaveToFavorites = async () => {
+    if (!projectData) return;
+    try {
+      await farmTrackingHandlers.saveToFavorites(projectData.projectId);
+    } catch (error) {
+      console.error('Error saving to favorites:', error);
+    }
   };
 
-  const growthTimeline = [
-    {
-      id: 1,
-      title: "Planting",
-      description: "Seeds planted successfully",
-      date: "2024-01-15",
-      status: "completed",
-    },
-    {
-      id: 2,
-      title: "Germination",
-      description: "First shoots emerged",
-      date: "2024-02-01",
-      status: "completed",
-    },
-    {
-      id: 3,
-      title: "Vegetative Growth",
-      description: "Healthy leaf development observed",
-      date: "2024-03-15",
-      status: "completed",
-    },
-    {
-      id: 4,
-      title: "Flowering",
-      description: "Flowering stage, good pollination expected",
-      date: "2024-05-01",
-      status: "current",
-    },
-    {
-      id: 5,
-      title: "Fruit Development",
-      description: "Fruit formation expected",
-      date: "2024-06-15",
-      status: "upcoming",
-    },
-    {
-      id: 6,
-      title: "Maturation",
-      description: "Final ripening phase",
-      date: "2024-08-01",
-      status: "upcoming",
-    },
-    {
-      id: 7,
-      title: "Harvest",
-      description: "Ready for harvest",
-      date: "2024-09-15",
-      status: "upcoming",
-    },
-  ];
+  const handleGenerateAnalytics = async () => {
+    if (!projectData) return;
+    try {
+      await farmTrackingHandlers.generateAnalytics(projectData.projectId);
+    } catch (error) {
+      console.error('Error generating analytics:', error);
+    }
+  };
 
-  const farmPhotos = [
-    { id: 1, date: "June 2, 2024", description: "Early flowering stage" },
-    { id: 2, date: "May 15, 2024", description: "Healthy plant growth" },
-    { id: 3, date: "June 8, 2024", description: "Full bloom development" },
-  ];
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-gray-300 border-t-black rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading farm tracking data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-500 mb-4">⚠️</div>
+          <p className="text-red-600 mb-4">Error: {error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!projectData) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No project data available</p>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "growth-timeline", label: "Growth Timeline" },
@@ -138,6 +177,7 @@ const FarmTrackingPage = () => {
               <Button
                 variant="outline"
                 className="border-black text-black hover:bg-gray-100"
+                onClick={handleSaveToFavorites}
               >
                 <Heart size={16} className="mr-2" />
                 Save
@@ -145,6 +185,7 @@ const FarmTrackingPage = () => {
               <Button
                 variant="outline"
                 className="border-black text-black hover:bg-gray-100"
+                onClick={handleGenerateAnalytics}
               >
                 <TrendingUp size={16} className="mr-2" />
                 Analytics
@@ -299,6 +340,105 @@ const FarmTrackingPage = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "weather-conditions" && (
+          <Card className="border-2 border-black">
+            <CardHeader className="border-b border-black">
+              <CardTitle>Weather & Conditions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {weatherData && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold text-sm text-gray-600">Temperature</h4>
+                    <p className="text-2xl font-bold">{weatherData.temperature}°C</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold text-sm text-gray-600">Humidity</h4>
+                    <p className="text-2xl font-bold">{weatherData.humidity}%</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold text-sm text-gray-600">Rainfall</h4>
+                    <p className="text-2xl font-bold">{weatherData.rainfall}mm</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold text-sm text-gray-600">Condition</h4>
+                    <p className="text-lg font-semibold">{weatherData.condition}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "farm-activities" && (
+          <Card className="border-2 border-black">
+            <CardHeader className="border-b border-black">
+              <CardTitle>Farm Activities</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {farmActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <h4 className="font-semibold">{activity.activity}</h4>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                      <p className="text-xs text-gray-500">{activity.date}</p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        activity.status === "completed"
+                          ? "bg-green-100 text-green-800"
+                          : activity.status === "scheduled"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {activity.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "financial-projection" && (
+          <Card className="border-2 border-black">
+            <CardHeader className="border-b border-black">
+              <CardTitle>Financial Projection</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {financialProjection && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-600">Total Investment</h4>
+                      <p className="text-2xl font-bold">IDR {financialProjection.totalInvestment.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-600">Current Value</h4>
+                      <p className="text-2xl font-bold">IDR {financialProjection.marketPrice.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-600">Projected Revenue</h4>
+                      <p className="text-2xl font-bold">IDR {financialProjection.projectedRevenue.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-600">Expected ROI</h4>
+                      <p className="text-2xl font-bold text-green-600">{financialProjection.roi.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded">
+                    <h4 className="font-semibold mb-2">Payout Information</h4>
+                    <p className="text-sm">Expected payout date: {financialProjection.payoutDate}</p>
+                    <p className="text-sm">Projected profit: IDR {financialProjection.projectedProfit.toLocaleString()}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

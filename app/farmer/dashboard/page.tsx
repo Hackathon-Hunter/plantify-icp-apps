@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,65 +16,87 @@ import {
   MapPin,
   Calendar,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getMyInvestmentProjects, getMyDashboardData, UIProjectData, UIDashboardStats } from "@/service";
 
 const FarmerDashboard = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All Projects");
+  const [projects, setProjects] = useState<UIProjectData[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<UIDashboardStats>({
+    totalProjects: 0,
+    activeProjects: 0,
+    totalFundingRaised: 0,
+    totalInvestors: 0,
+    averageROI: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [farmerName] = useState("Farmer");
 
   const navigateToInvestmentSetup = () => router.push('/farmer/investment-setup');
 
-  const dashboardStats = {
-    totalProjects: 5,
-    activeProjects: 3,
-    totalFundingRaised: 28500,
-    totalInvestors: 41,
-    averageROI: 18.5,
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [projectsData, dashboardData] = await Promise.all([
+        getMyInvestmentProjects(),
+        getMyDashboardData()
+      ]);
+
+      setProjects(projectsData);
+      setDashboardStats(dashboardData);
+
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const projects = [
-    {
-      id: 1,
-      title: "Organic Rice Farm Malang",
-      location: "Batu, Malang, East Java",
-      crop: "Rice",
-      area: "2.5 hectares",
-      status: "Active",
-      fundingProgress: {
-        current: 5000,
-        target: 5000,
-        percentage: 100,
-      },
-      investors: 12,
-      timeline: "Harvest: 2025-04-15 • 66 days",
-      expectedYield: {
-        amount: 12,
-        unit: "tons",
-      },
-      roi: "22%",
-      lastUpdate: "2 days ago",
-      statusColor: "bg-green-500",
-    },
-    {
-      id: 2,
-      title: "Coffee Plantation Expansion",
-      location: "Jember, East Java",
-      crop: "Coffee",
-      area: "3.2 hectares",
-      status: "In Verification",
-      verificationStatus: "Site Verification",
-      timeline: "Harvest: 2025-06-01 • Pending approval",
-      expectedYield: {
-        amount: 4.5,
-        unit: "tons",
-      },
-      roi: "35%",
-      lastUpdate: "6 hours ago",
-      statusColor: "bg-blue-500",
-    },
-  ];
+  // Load data on component mount
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  // Filter projects based on search and status
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.crop.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === "All Projects" || project.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={fetchDashboardData} className="bg-black text-white hover:bg-gray-800">
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -84,10 +106,10 @@ const FarmerDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">
-                Welcome back, Ahmad Rizki! 👋
+                Welcome back, {farmerName}! 👋
               </h1>
               <p className="text-gray-600 text-sm">
-                Farmer since March 2024 • East Java, Indonesia
+                Farmer • Indonesia
               </p>
             </div>
             <Button className="bg-black text-white hover:bg-gray-800 border border-black" onClick={navigateToInvestmentSetup}>
@@ -124,7 +146,7 @@ const FarmerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">
-                    ${dashboardStats.totalFundingRaised.toLocaleString()}
+                    ${dashboardStats.totalFundingRaised.toFixed(1)}M
                   </p>
                   <p className="text-sm text-gray-600">Total Funding Raised</p>
                   <p className="text-xs text-gray-500">+23% this month</p>
@@ -156,7 +178,7 @@ const FarmerDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-2xl font-bold">
-                    {dashboardStats.averageROI}%
+                    {dashboardStats.averageROI.toFixed(1)}%
                   </p>
                   <p className="text-sm text-gray-600">Average ROI</p>
                   <p className="text-xs text-gray-500">Above market avg</p>
@@ -220,11 +242,11 @@ const FarmerDashboard = () => {
                 </select>
               </div>
             </div>
-            <p className="text-sm text-gray-600">{projects.length} projects</p>
+            <p className="text-sm text-gray-600">{filteredProjects.length} projects</p>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-6">
-              {projects.map((project) => (
+              {filteredProjects.map((project) => (
                 <Card key={project.id} className="border border-black">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">
@@ -262,9 +284,9 @@ const FarmerDashboard = () => {
                               </p>
                               <p className="font-semibold">
                                 $
-                                {project.fundingProgress.current.toLocaleString()}{" "}
+                                {project.fundingProgress.current.toFixed(1)}M{" "}
                                 / $
-                                {project.fundingProgress.target.toLocaleString()}
+                                {project.fundingProgress.target.toFixed(1)}M
                               </p>
                               <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                                 <div
@@ -374,6 +396,19 @@ const FarmerDashboard = () => {
             </div>
 
             {/* Empty State */}
+            {filteredProjects.length === 0 && projects.length > 0 && (
+              <div className="text-center py-12">
+                <Search size={48} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold mb-2">
+                  No projects match your search
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your search terms or filters
+                </p>
+              </div>
+            )}
+
+            {/* No Projects State */}
             {projects.length === 0 && (
               <div className="text-center py-12">
                 <Sprout size={48} className="mx-auto mb-4 text-gray-400" />
@@ -383,7 +418,10 @@ const FarmerDashboard = () => {
                 <p className="text-gray-600 mb-4">
                   Create your first farm investment project to get started
                 </p>
-                <Button className="bg-black text-white hover:bg-gray-800 border border-black">
+                <Button
+                  className="bg-black text-white hover:bg-gray-800 border border-black"
+                  onClick={navigateToInvestmentSetup}
+                >
                   + Create New Project
                 </Button>
               </div>
