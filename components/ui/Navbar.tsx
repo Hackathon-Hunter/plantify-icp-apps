@@ -1,16 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Sprout, Menu, X, LogIn } from 'lucide-react';
+import { Menu, X, LogIn, LogOut } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
+import { useAuth } from '@/lib/AuthContext';
 
 const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const { isLoggedIn, logout } = useAuth();
 
-    const navigateToInvestor = () => {
-        console.log('Navigating to investor page...');
+    const navigateToLogin = () => {
+        window.location.href = '/login';
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        window.location.href = '/';
     };
 
     return (
@@ -31,14 +38,25 @@ const Navbar = () => {
                 </div>
 
                 <div className="hidden md:flex items-center gap-3">
-                    <Button
-                        iconLeft={<LogIn />}
-                        variant="outline"
-                        className="border-white text-white hover:bg-gray-500"
-                        onClick={navigateToInvestor}
-                    >
-                        Sign In
-                    </Button>
+                    {isLoggedIn ? (
+                        <Button
+                            iconLeft={<LogOut />}
+                            variant="outline"
+                            className="border-white text-white hover:bg-gray-500"
+                            onClick={handleLogout}
+                        >
+                            Sign Out
+                        </Button>
+                    ) : (
+                        <Button
+                            iconLeft={<LogIn />}
+                            variant="outline"
+                            className="border-white text-white hover:bg-gray-500"
+                            onClick={navigateToLogin}
+                        >
+                            Sign In
+                        </Button>
+                    )}
                 </div>
 
                 {/* Mobile Menu Button */}
@@ -60,9 +78,23 @@ const Navbar = () => {
                         <a href="#" className="text-white">Raise Capital</a>
                         <a href="#" className="text-white">Secondary Market</a>
                         <div className="flex flex-col gap-2 pt-4">
-                            <Button variant="outline" className="border-white text-white">
-                                Sign Up
-                            </Button>
+                            {isLoggedIn ? (
+                                <Button 
+                                    variant="outline" 
+                                    className="border-white text-white"
+                                    onClick={handleLogout}
+                                >
+                                    Sign Out
+                                </Button>
+                            ) : (
+                                <Button 
+                                    variant="outline" 
+                                    className="border-white text-white"
+                                    onClick={navigateToLogin}
+                                >
+                                    Sign In
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
