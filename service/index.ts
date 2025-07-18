@@ -12,6 +12,7 @@ export * from "./portfolioService";
 export * from "./purchaseService";
 export * from "./dashboardService";
 export * from "./documentService";
+export * from "./authService";
 
 // Export mock data for development
 export * from "./mock"; 
