@@ -9,6 +9,7 @@ interface CardVerticalProps extends React.HTMLAttributes<HTMLDivElement> {
   buttonText?: string;
   buttonIcon?: React.ReactNode;
   iconPosition?: "left" | "right";
+  reverse?: boolean;
 }
 
 export const CardVertical: React.FC<CardVerticalProps> = ({
@@ -18,6 +19,7 @@ export const CardVertical: React.FC<CardVerticalProps> = ({
   buttonText,
   buttonIcon,
   iconPosition = "left",
+  reverse: _reverse,
   className,
   ...props
 }) => {
