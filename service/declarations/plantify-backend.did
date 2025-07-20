@@ -1,691 +1,314 @@
-type VerificationTracker = 
- record {
-   currentStep: text;
-   investmentId: InvestmentId;
-   lastUpdated: int;
-   overallProgress: nat;
-   steps: vec VerificationStep;
- };
-type VerificationStep = 
- record {
-   completedAt: opt int;
-   description: text;
-   estimatedTime: text;
-   notes: opt text;
-   status: variant {
-             Completed;
-             Failed;
-             InProgress;
-             Pending;
-           };
-   stepName: text;
- };
-type VerificationStatus = 
- variant {
-   Approved;
-   InReview;
-   Pending;
-   Rejected;
- };
-type Value = 
- variant {
-   Array: vec Value;
-   Blob: blob;
-   Int: int;
-   Map: vec record {
-              text;
-              Value;
-            };
-   Nat: nat;
-   Text: text;
- };
-type UploadDocumentRequest = 
- record {
-   documentType: DocumentType;
-   fileHash: text;
-   fileName: text;
- };
 type TransferResult = 
  variant {
-   Err: TransferError;
-   Ok: TokenId;
+   err: text;
+   ok: nat;
  };
-type TransferError = 
- variant {
-   CreatedInFuture: record {ledger_time: nat64;};
-   Duplicate: record {duplicate_of: TokenId;};
-   GenericBatchError: record {
-                        error_code: nat;
-                        message: text;
-                      };
-   GenericError: record {
-                   error_code: nat;
-                   message: text;
-                 };
-   InvalidRecipient;
-   NonExistentTokenId;
-   TooOld;
-   Unauthorized;
- };
-type TransferArg = 
- record {
-   created_at_time: opt nat64;
-   from_subaccount: opt blob;
-   memo: opt blob;
-   to: Account;
-   token_id: TokenId;
- };
-type TokenMetadata = 
- vec record {
-       text;
-       Value;
-     };
-type TokenId = nat;
-type Standard = 
- record {
-   name: text;
-   url: text;
- };
-type Result_1 = 
+type PurchaseResult = 
  variant {
    err: text;
-   ok: TokenId;
+   ok: Investment;
  };
-type Result = 
+type PurchaseRequest = 
+ record {
+   collectionId: text;
+   paymentAmount: nat;
+   projectId: text;
+   quantity: nat;
+ };
+type ProjectUpdateResult = 
  variant {
    err: text;
    ok;
  };
-type RegisterInvestorRequest = 
+type ProjectUpdateRequest = 
  record {
-   email: text;
-   fullName: text;
+   category: text;
+   description: text;
+   expectedROI: text;
+   fundingGoal: nat;
+   location: text;
+   maxInvestment: opt nat;
+   minInvestment: nat;
+   projectType: ProjectType;
+   riskLevel: text;
+   tags: vec text;
+   targetDate: opt int;
+   timeline: text;
+   title: text;
  };
-type RegisterFarmerRequest = 
- record {
-   email: text;
-   fullName: text;
-   governmentId: text;
-   phoneNumber: text;
- };
-type PurchaseNFTResult = 
+type ProjectType = 
  variant {
-   Error: text;
-   InsufficientPayment: record {
-                          provided: nat;
-                          required: nat;
-                        };
-   InsufficientSupply: record {
-                         available: nat;
-                         requested: nat;
-                       };
-   InvalidQuantity;
-   ProjectNotFound;
-   Success:
-    record {
-      remainingAvailable: nat;
-      tokenIds: vec TokenId;
-      totalPaid: nat;
-    };
+   Agriculture;
+   Education;
+   Energy;
+   Environment;
+   Finance;
+   Healthcare;
+   Manufacturing;
+   Other;
+   RealEstate;
+   Services;
+   Technology;
  };
-type PurchaseNFTRequest = 
- record {
-   investmentId: nat;
-   paymentAmount: nat;
-   quantity: nat;
- };
-type NFTCollection = 
- record {
-   availableSupply: nat;
-   createdAt: int;
-   investmentId: nat;
-   nftPrice: nat;
-   soldSupply: nat;
-   tokenIds: vec TokenId;
-   totalSupply: nat;
- };
-type MintResult = 
- variant {
-   Err: MintError;
-   Ok: TokenId;
- };
-type MintError = 
- variant {
-   GenericError: record {
-                   error_code: nat;
-                   message: text;
-                 };
-   InvalidRecipient;
-   TokenIdAlreadyExists;
-   Unauthorized;
- };
-type MarketDistribution = 
- variant {
-   ContractFarming;
-   Cooperatives;
-   DirectToConsumer;
-   ExportBuyers;
-   LocalMarkets;
-   ProcessingIndustries;
- };
-type LandOwnership = 
- variant {
-   Leased;
-   Owned;
-   Partnership;
- };
-type InvestorStatus = 
+type ProjectStatus = 
  variant {
    Active;
-   Inactive;
-   Suspended;
- };
-type InvestorStats = 
- record {
-   activeInvestors: nat;
-   averageInvestmentAmount: nat;
-   inactiveInvestors: nat;
-   suspendedInvestors: nat;
-   totalInvestmentVolume: nat;
-   totalInvestors: nat;
- };
-type InvestorRegistrationResult = 
- variant {
-   AlreadyRegistered: InvestorId;
-   Error: text;
-   InvalidData: text;
-   Success: InvestorId;
- };
-type InvestorProfile = 
- record {
-   activeInvestments: nat;
-   email: text;
-   fullName: text;
-   investorId: InvestorId;
-   isActive: bool;
-   lastUpdated: int;
-   portfolioValue: nat;
-   registrationDate: int;
-   status: InvestorStatus;
-   totalInvestmentAmount: nat;
- };
-type InvestorPortfolio = 
- record {
-   investments: vec InvestorInvestment;
-   investor: InvestorProfile;
-   roiPercentage: float64;
-   totalReturns: nat;
-   totalValue: nat;
- };
-type InvestorInvestment = 
- record {
-   currentValue: nat;
-   investmentAmount: nat;
-   investmentId: nat;
-   nftTokenIds: vec nat;
-   purchaseDate: int;
-   status: variant {
-             Active;
-             Matured;
-             Sold;
-           };
- };
-type InvestorId = principal;
-type InvestmentStatus = 
- variant {
-   Active;
-   Approved;
    Cancelled;
    Completed;
    Draft;
-   InVerification;
-   PendingVerification;
+   Funded;
+   InProgress;
+   InReview;
    Rejected;
  };
-type InvestmentStats = 
- record {
-   activeProjects: nat;
-   approvedProjects: nat;
-   completedProjects: nat;
-   pendingVerification: nat;
-   rejectedProjects: nat;
-   totalProjects: nat;
- };
-type InvestmentProjectResult = 
+type ProjectResult = 
  variant {
-   Error: text;
-   FarmerNotVerified;
-   InvalidData: text;
-   Success: InvestmentId;
+   err: text;
+   ok: Project;
  };
-type InvestmentProject = 
+type ProjectCreateRequest = 
  record {
-   agreements: vec bool;
-   approvedAt: opt int;
-   budget: BudgetRequest;
-   createdAt: int;
-   documents: vec InvestmentDocument;
-   experience: ExperienceRequest;
-   farmInfo: FarmInfoRequest;
-   farmerId: FarmerId;
-   id: InvestmentId;
-   lastUpdated: int;
-   rejectedReason: opt text;
-   status: InvestmentStatus;
-   verificationNotes: opt text;
- };
-type InvestmentId = nat;
-type InvestmentDocument = 
- record {
-   documentType: DocumentType__1;
-   fileHash: text;
-   fileName: text;
-   isRequired: bool;
-   uploadedAt: int;
- };
-type HarvestTimeline = 
- variant {
-   Long;
-   Medium;
-   Short;
- };
-type FarmerStats = 
- record {
-   approvedFarmers: nat;
-   pendingVerification: nat;
-   rejectedFarmers: nat;
-   totalFarmers: nat;
- };
-type FarmerRegistrationResult = 
- variant {
-   AlreadyRegistered: FarmerId;
-   Error: text;
-   InvalidData: text;
-   Success: FarmerId;
- };
-type FarmerProfile = 
- record {
-   documents: vec Document;
-   email: text;
-   farmerId: FarmerId;
-   fullName: text;
-   governmentId: text;
-   isActive: bool;
-   lastUpdated: int;
-   phoneNumber: text;
-   registrationDate: int;
-   verificationStatus: VerificationStatus;
- };
-type FarmerId = principal;
-type FarmNFTMetadata = 
- record {
-   area: text;
-   availableSupply: nat;
-   createdAt: int;
-   cropType: text;
-   expectedYield: text;
-   farmerId: principal;
-   fundingAmount: nat;
-   harvestTimeline: text;
-   imageUrl: opt text;
-   investmentId: nat;
+   category: text;
+   description: text;
+   expectedROI: text;
+   fundingGoal: nat;
    location: text;
-   nftPrice: nat;
-   projectStatus: text;
-   soldSupply: nat;
+   maxInvestment: opt nat;
+   minInvestment: nat;
+   projectType: ProjectType;
+   riskLevel: text;
+   tags: vec text;
+   targetDate: opt int;
+   timeline: text;
+   title: text;
+ };
+type Project = 
+ record {
+   category: text;
+   createdAt: int;
+   description: text;
+   expectedROI: text;
+   founderId: text;
+   founderPrincipal: principal;
+   fundingGoal: nat;
+   fundingRaised: nat;
+   id: text;
+   investorCount: nat;
+   launchDate: opt int;
+   location: text;
+   maxInvestment: opt nat;
+   minInvestment: nat;
+   projectType: ProjectType;
+   riskLevel: text;
+   status: ProjectStatus;
+   tags: vec text;
+   targetDate: opt int;
+   timeline: text;
+   title: text;
+   updatedAt: int;
+ };
+type NFTCollection = 
+ record {
+   createdAt: int;
+   createdBy: principal;
+   id: text;
+   isActive: bool;
+   maxSupply: nat;
+   metadata: CollectionMetadata;
+   pricePerToken: nat;
+   projectId: text;
    totalSupply: nat;
  };
-type FarmInfoRequest = 
- record {
-   accessRoads: AccessRoadCondition;
-   cityDistrict: text;
-   country: text;
-   cropType: CropType;
-   farmSize: text;
-   fundingRequired: nat;
-   gpsCoordinates: opt text;
-   landOwnership: LandOwnership;
-   stateProvince: text;
-   waterSource: text;
- };
-type ExperienceRequest = 
- record {
-   cultivationMethod: CultivationMethod;
-   expectedYield: text;
-   farmingExperience: ExperienceLevel;
-   harvestTimeline: HarvestTimeline;
-   investmentDescription: text;
-   marketDistribution: vec MarketDistribution;
- };
-type ExperienceLevel = 
+type InvestorUpdateResult = 
  variant {
-   Beginner;
-   Experienced;
-   Intermediate;
+   err: text;
+   ok;
  };
-type DocumentType__1 = 
+type InvestorRegistrationResult = 
  variant {
-   AgriculturalCertification;
-   CommunityEndorsement;
-   FarmPhoto;
-   GovernmentPermit;
-   LandCertificate;
-   LeaseAgreement;
-   PreviousHarvestPhoto;
-   SoilTestResult;
+   err: text;
+   ok: Investor;
  };
-type DocumentType = 
- variant {
-   BusinessLicense;
-   GovernmentID;
-   LandCertificate;
-   SelfiePhoto;
- };
-type Document = 
+type InvestorRegistrationRequest = 
  record {
-   documentType: DocumentType;
-   fileHash: text;
-   fileName: text;
-   uploadedAt: int;
+   email: text;
+   fullName: text;
  };
-type CultivationMethod = 
- variant {
-   Conventional;
-   Hydroponic;
-   Organic;
- };
-type CropType = 
- variant {
-   Coffee;
-   Corn;
-   Fruits;
-   Other: text;
-   Rice;
-   Vegetables;
- };
-type CreateInvestmentRequest = 
+type Investor = 
  record {
-   agreements: vec bool;
-   budget: BudgetRequest;
-   documents: vec InvestmentDocument;
-   experience: ExperienceRequest;
-   farmInfo: FarmInfoRequest;
+   email: text;
+   fullName: text;
+   id: text;
+   isVerified: bool;
+   "principal": principal;
+   registrationDate: int;
  };
-type BudgetRequest = 
+type InvestmentSummary = 
  record {
-   budgetAllocation: BudgetAllocation;
-   emergencyContactName: text;
-   emergencyContactPhone: text;
-   expectedMaxROI: nat;
-   expectedMinROI: nat;
-   hasBusinessBankAccount: bool;
-   previousFarmingLoans: opt bool;
+   amount: nat;
+   currentValue: opt nat;
+   id: text;
+   investmentDate: int;
+   projectTitle: text;
+   quantity: nat;
+   status: InvestmentStatus;
  };
-type BudgetAllocation = 
- record {
-   equipment: nat;
-   fertilizers: nat;
-   infrastructure: nat;
-   insurance: nat;
-   labor: nat;
-   operational: nat;
-   seeds: nat;
- };
-type ApprovalResult = 
+type InvestmentStatus = 
  variant {
-   Err: ApprovalError;
-   Ok: TokenId;
+   Completed;
+   Failed;
+   Pending;
+   Processing;
+   Refunded;
  };
-type ApprovalInfo = 
+type Investment = 
  record {
-   created_at_time: opt nat64;
-   expires_at: opt nat64;
-   from_subaccount: opt blob;
-   memo: opt blob;
-   spender: Account;
+   amount: nat;
+   collectionId: text;
+   founderId: text;
+   founderPrincipal: principal;
+   id: text;
+   investmentDate: int;
+   investorId: text;
+   investorPrincipal: principal;
+   pricePerToken: nat;
+   projectId: text;
+   quantity: nat;
+   status: InvestmentStatus;
+   tokenIds: vec nat;
+   transactionHash: opt text;
  };
-type ApprovalError = 
- variant {
-   CreatedInFuture: record {ledger_time: nat64;};
-   GenericError: record {
-                   error_code: nat;
-                   message: text;
-                 };
-   InvalidSpender;
-   NonExistentTokenId;
-   TooOld;
-   Unauthorized;
- };
-type Account = 
+type ICPTransferRequest = 
  record {
-   owner: principal;
-   subaccount: opt blob;
+   amount: nat;
+   memo: opt text;
+   to: principal;
  };
-type AccessRoadCondition = 
+type FounderUpdateResult = 
  variant {
-   Fair;
-   Good;
-   Poor;
+   err: text;
+   ok;
+ };
+type FounderRegistrationResult = 
+ variant {
+   err: text;
+   ok: Founder;
+ };
+type FounderRegistrationRequest = 
+ record {
+   email: text;
+   fullName: text;
+   governmentId: text;
+   phoneNumber: text;
+ };
+type Founder = 
+ record {
+   email: text;
+   fullName: text;
+   governmentId: text;
+   id: text;
+   isVerified: bool;
+   phoneNumber: text;
+   "principal": principal;
+   registrationDate: int;
+ };
+type CreateCollectionRequest = 
+ record {
+   description: text;
+   image: opt text;
+   maxSupply: nat;
+   name: text;
+   pricePerToken: opt nat;
+   projectId: text;
+   symbol: text;
+ };
+type CollectionStats = 
+ record {
+   activeCollections: nat;
+   totalCollections: nat;
+   totalTokensMinted: nat;
+   totalValueLocked: nat;
+ };
+type CollectionResult = 
+ variant {
+   err: text;
+   ok: NFTCollection;
+ };
+type CollectionMetadata = 
+ record {
+   description: text;
+   image: opt text;
+   name: text;
+   supply_cap: opt nat;
+   symbol: text;
  };
 service : {
-  addInvestmentDocument: (investmentId: InvestmentId, document:
-   InvestmentDocument) -> (Result);
-  approveInvestmentAndMintNFT: (investmentId: InvestmentId, notes: opt text,
-   customSupply: opt nat) -> (Result_1);
-  calculateNFTPrice: (fundingRequiredUSD: nat, totalSupply: nat) ->
-   (nat) query;
-  checkInvestorRegistration: (principalIds: vec principal) ->
-   (vec record {
-          principal;
-          bool;
-        }) query;
-  createInvestmentProject: (request: CreateInvestmentRequest) ->
-   (InvestmentProjectResult);
-  getAdminDashboardStats: () ->
-   (record {
-      financial:
-       record {
-         averageInvestmentSize: nat;
-         platformRevenue: nat;
-         totalInvestmentVolume: nat;
-       };
-      nfts:
-       record {
-         averagePrice: nat;
-         totalCollections: nat;
-         totalSupply: nat;
-         totalVolume: nat;
-       };
-      projects: InvestmentStats;
-      users: record {
-               farmers: FarmerStats;
-               investors: InvestorStats;
-             };
-    }) query;
-  getAllFarmers: () -> (vec FarmerProfile) query;
-  getAllInvestmentProjects: () -> (vec InvestmentProject) query;
-  getAllInvestors: () -> (vec InvestorProfile) query;
-  getAllNFTCollections: () -> (vec NFTCollection) query;
-  getAllNFTs: () -> (vec TokenId) query;
-  getDetailedPortfolio: () ->
-   (opt
-     record {
-       investments:
-        vec
-         record {
-           currentMarketValue: nat;
-           investment: InvestorInvestment;
-           nftTokens: vec TokenId;
-           project: opt InvestmentProject;
-           roiPercentage: float64;
-         };
-       investor: InvestorProfile;
-       summary:
-        record {
-          bestPerforming: opt nat;
-          overallROI: float64;
-          totalReturns: nat;
-          totalValue: nat;
-          worstPerforming: opt nat;
-        };
-     }) query;
-  getFarmNFTMetadata: (tokenId: TokenId) -> (opt FarmNFTMetadata) query;
-  getFarmerProfile: (farmerId: FarmerId) -> (opt FarmerProfile) query;
-  getFarmerRegistrationStats: () -> (FarmerStats) query;
-  getFarmersByStatus: (status: VerificationStatus) ->
-   (vec FarmerProfile) query;
-  getInvestmentOpportunities: () -> (vec InvestmentProject) query;
-  getInvestmentProject: (investmentId: InvestmentId) ->
-   (opt InvestmentProject) query;
-  getInvestmentProjectSummary: (investmentId: InvestmentId) ->
-   (opt
-     record {
-       nftCollection: opt NFTCollection;
-       pricing:
-        opt
-         record {
-           availableSupply: nat;
-           fundingRequired: nat;
-           nftPrice: nat;
-           priceInICP: float64;
-           soldSupply: nat;
-           totalSupply: nat;
-         };
-       project: InvestmentProject;
-     }) query;
-  getInvestmentProjectsByFarmer: (farmerId: FarmerId) ->
-   (vec InvestmentProject) query;
-  getInvestmentProjectsByStatus: (status: InvestmentStatus) ->
-   (vec InvestmentProject) query;
-  getInvestmentStats: () -> (InvestmentStats) query;
-  getInvestorPortfolio: (investorId: InvestorId) ->
-   (opt InvestorPortfolio) query;
-  getInvestorProfile: (investorId: InvestorId) -> (opt InvestorProfile) query;
-  getInvestorRegistrationStats: () -> (InvestorStats) query;
-  getInvestorsByStatus: (status: InvestorStatus) ->
-   (vec InvestorProfile) query;
-  getMarketplaceOverview: () ->
+  createNFTCollection: (request: CreateCollectionRequest) ->
+   (CollectionResult);
+  createProject: (request: ProjectCreateRequest) -> (ProjectResult);
+  deleteProject: (projectId: text) -> (ProjectUpdateResult);
+  founderExistsByEmail: (email: text) -> (bool) query;
+  getActiveNFTCollections: () -> (vec NFTCollection) query;
+  getActiveProjects: () -> (vec Project) query;
+  getAllFounders: () -> (vec Founder) query;
+  getAllInvestors: () -> (vec Investor) query;
+  getAllProjects: () -> (vec Project) query;
+  getFounder: (founderId: text) -> (opt Founder) query;
+  getFounderByEmail: (email: text) -> (opt Founder) query;
+  getFounderCount: () -> (nat) query;
+  getICPTransferFee: () -> (nat) query;
+  getInvestment: (investmentId: text) -> (opt Investment) query;
+  getInvestmentsForMyProjects: () -> (vec Investment);
+  getInvestor: (investorId: text) -> (opt Investor) query;
+  getInvestorByEmail: (email: text) -> (opt Investor) query;
+  getInvestorCount: () -> (nat) query;
+  getInvestorCountForProject: (projectId: text) -> (nat) query;
+  getMyFounderProfile: () -> (opt Founder);
+  getMyICPBalance: () -> (variant {
+                            err: text;
+                            ok: nat;
+                          });
+  getMyInvestmentSummaries: () -> (vec InvestmentSummary);
+  getMyInvestments: () -> (vec Investment);
+  getMyInvestorProfile: () -> (opt Investor);
+  getMyProjects: () -> (vec Project);
+  getNFTCollection: (collectionId: text) -> (opt NFTCollection) query;
+  getNFTCollectionsByProject: (projectId: text) -> (vec NFTCollection) query;
+  getNFTStats: () -> (CollectionStats) query;
+  getPlatformStats: () ->
    (record {
       activeProjects: nat;
-      averageROI: float64;
-      topPerformingCrops: vec text;
-      totalFundingAvailable: nat;
-      totalInvestmentOpportunities: nat;
-    }) query;
-  getMyDashboardData: () ->
-   (record {
-      farmerData:
-       opt
-        record {
-          activeProjects: nat;
-          totalFundingRaised: nat;
-          totalProjects: nat;
-          verificationStatus: VerificationStatus;
-        };
-      investorData:
-       opt
-        record {
-          portfolioValue: nat;
-          roiPercentage: float64;
-          totalInvestments: nat;
-          totalReturns: nat;
-        };
-      userType: text;
-    }) query;
-  getMyFarmerProfile: () -> (opt FarmerProfile) query;
-  getMyInvestmentProjects: () -> (vec InvestmentProject) query;
-  getMyInvestorProfile: () -> (opt InvestorProfile) query;
-  getMyNFTs: () -> (vec TokenId) query;
-  getMyPortfolio: () -> (opt InvestorPortfolio) query;
-  getMyRegistrationStatus: () ->
-   (record {
-      farmerStatus: opt VerificationStatus;
-      investorStatus: opt InvestorStatus;
-      isFarmer: bool;
-      isInvestor: bool;
-    }) query;
-  getNFTCollection: (investmentId: nat) -> (opt NFTCollection) query;
-  getNFTStats: () ->
-   (record {
-      averagePrice: nat;
-      totalCollections: nat;
-      totalSupply: nat;
-    }) query;
-  getNFTsByFarmer: (farmerId: principal) -> (vec TokenId) query;
-  getNFTsByInvestment: (investmentId: nat) -> (vec TokenId) query;
-  getPlatformMetrics: () ->
-   (record {
-      averageInvestmentSize: nat;
-      platformGrowthRate: float64;
-      totalFarmers: nat;
-      totalInvestmentProjects: nat;
-      totalInvestmentVolume: nat;
+      totalFounders: nat;
+      totalFundingRaised: nat;
+      totalInvestments: nat;
       totalInvestors: nat;
-      totalUsers: nat;
+      totalProjects: nat;
     }) query;
-  getPlatformOverview: () ->
-   (record {
-      farmers: FarmerStats;
-      investments: InvestmentStats;
-      investors: InvestorStats;
-      nfts: record {
-              totalCollections: nat;
-              totalSupply: nat;
-            };
-    }) query;
-  getPricingInfo: (investmentId: nat) ->
-   (opt
-     record {
-       availableSupply: nat;
-       fundingRequired: nat;
-       nftPrice: nat;
-       priceInICP: float64;
-       soldSupply: nat;
-       totalSupply: nat;
-     }) query;
-  getRecentInvestmentActivity: (limit: nat) -> (vec InvestmentProject) query;
-  getTopInvestors: (limit: nat) -> (vec InvestorProfile) query;
-  getVerificationTracker: (investmentId: InvestmentId) ->
-   (opt VerificationTracker) query;
+  getProject: (projectId: text) -> (opt Project) query;
+  getProjectCount: () -> (nat) query;
+  getProjectsByFounder: (founderId: text) -> (vec Project) query;
+  getProjectsByStatus: (status: ProjectStatus) -> (vec Project) query;
+  getTotalFundingForProject: (projectId: text) -> (nat) query;
   healthCheck: () -> (text) query;
-  icrc7_approve: (args: vec ApprovalInfo) -> (vec ApprovalResult);
-  icrc7_balance_of: (accounts: vec Account) -> (vec nat) query;
-  icrc7_description: () -> (opt text) query;
-  icrc7_logo: () -> (opt text) query;
-  icrc7_name: () -> (text) query;
-  icrc7_owner_of: (token_ids: vec TokenId) -> (vec opt Account) query;
-  icrc7_supported_standards: () -> (vec Standard) query;
-  icrc7_symbol: () -> (text) query;
-  icrc7_token_metadata: (token_ids: vec TokenId) ->
-   (vec opt TokenMetadata) query;
-  icrc7_tokens_of: (account: Account, prev: opt TokenId, take: opt nat) ->
-   (vec TokenId) query;
-  icrc7_total_supply: () -> (nat) query;
-  icrc7_transfer: (args: vec TransferArg) -> (vec TransferResult);
-  isActiveInvestor: (investorId: InvestorId) -> (bool) query;
-  isFarmerVerified: (farmerId: FarmerId) -> (bool) query;
-  mintFarmNFT: (investmentId: InvestmentId, customSupply: opt nat) ->
-   (MintResult);
-  purchaseNFT: (request: PurchaseNFTRequest) -> (PurchaseNFTResult);
-  registerFarmer: (request: RegisterFarmerRequest) ->
-   (FarmerRegistrationResult);
-  registerInvestor: (request: RegisterInvestorRequest) ->
+  investorExistsByEmail: (email: text) -> (bool) query;
+  purchaseNFTs: (request: PurchaseRequest) -> (PurchaseResult);
+  registerFounder: (request: FounderRegistrationRequest) ->
+   (FounderRegistrationResult);
+  registerInvestor: (request: InvestorRegistrationRequest) ->
    (InvestorRegistrationResult);
-  searchInvestmentProjects: (cropType: opt CropType, country: opt text,
-   minFunding: opt nat, maxFunding: opt nat, status: opt InvestmentStatus) ->
-   (vec InvestmentProject) query;
-  updateFarmerProfile: (fullName: opt text, email: opt text, phoneNumber:
-   opt text) -> (Result);
-  updateFarmerVerificationStatus: (farmerId: FarmerId, newStatus:
-   VerificationStatus) -> (Result);
-  updateInvestmentProjectStatus: (investmentId: InvestmentId, newStatus:
-   InvestmentStatus, notes: opt text) -> (Result);
-  updateInvestmentValue: (investorId: InvestorId, investmentId: nat,
-   newValue: nat) -> (Result);
-  updateInvestorProfile: (fullName: opt text, email: opt text) -> (Result);
-  updateInvestorStatus: (investorId: InvestorId, newStatus:
-   InvestorStatus) -> (Result);
-  updateNFTMetadata: (tokenId: TokenId, imageUrl: opt text, projectStatus:
-   opt text) -> (Result);
-  uploadDocument: (request: UploadDocumentRequest) -> (Result);
+  simulateICPTransfer: (request: ICPTransferRequest) -> (TransferResult);
+  submitProjectForReview: (projectId: text) -> (ProjectUpdateResult);
+  transferICP: (request: ICPTransferRequest) -> (TransferResult);
+  updateFounderVerification: (founderId: text, isVerified: bool) ->
+   (FounderUpdateResult);
+  updateInvestorVerification: (investorId: text, isVerified: bool) ->
+   (InvestorUpdateResult);
+  updateMyFounderProfile: (founderId: text, request:
+   FounderRegistrationRequest) -> (FounderUpdateResult);
+  updateMyInvestorProfile: (investorId: text, request:
+   InvestorRegistrationRequest) -> (InvestorUpdateResult);
+  updateProject: (projectId: text, request: ProjectUpdateRequest) ->
+   (ProjectUpdateResult);
+  updateProjectStatus: (projectId: text, newStatus: ProjectStatus) ->
+   (ProjectUpdateResult);
 }

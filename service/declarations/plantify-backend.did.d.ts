@@ -1,622 +1,277 @@
-import type { Principal } from '@dfinity/principal';
-import type { ActorMethod } from '@dfinity/agent';
-import type { IDL } from '@dfinity/candid';
+import type { Principal } from "@dfinity/principal";
+import type { ActorMethod } from "@dfinity/agent";
+import type { IDL } from "@dfinity/candid";
 
-export type AccessRoadCondition = { 'Fair' : null } |
-  { 'Good' : null } |
-  { 'Poor' : null };
-export interface Account {
-  'owner' : Principal,
-  'subaccount' : [] | [Uint8Array | number[]],
+export interface CollectionMetadata {
+  supply_cap: [] | [bigint];
+  name: string;
+  description: string;
+  image: [] | [string];
+  symbol: string;
 }
-export type ApprovalError = {
-    'GenericError' : { 'message' : string, 'error_code' : bigint }
-  } |
-  { 'NonExistentTokenId' : null } |
-  { 'InvalidSpender' : null } |
-  { 'Unauthorized' : null } |
-  { 'CreatedInFuture' : { 'ledger_time' : bigint } } |
-  { 'TooOld' : null };
-export interface ApprovalInfo {
-  'memo' : [] | [Uint8Array | number[]],
-  'from_subaccount' : [] | [Uint8Array | number[]],
-  'created_at_time' : [] | [bigint],
-  'expires_at' : [] | [bigint],
-  'spender' : Account,
+export type CollectionResult = { ok: NFTCollection } | { err: string };
+export interface CollectionStats {
+  totalTokensMinted: bigint;
+  activeCollections: bigint;
+  totalValueLocked: bigint;
+  totalCollections: bigint;
 }
-export type ApprovalResult = { 'Ok' : TokenId } |
-  { 'Err' : ApprovalError };
-export interface BudgetAllocation {
-  'fertilizers' : bigint,
-  'equipment' : bigint,
-  'labor' : bigint,
-  'insurance' : bigint,
-  'seeds' : bigint,
-  'infrastructure' : bigint,
-  'operational' : bigint,
+export interface CreateCollectionRequest {
+  name: string;
+  description: string;
+  projectId: string;
+  image: [] | [string];
+  pricePerToken: [] | [bigint];
+  maxSupply: bigint;
+  symbol: string;
 }
-export interface BudgetRequest {
-  'previousFarmingLoans' : [] | [boolean],
-  'expectedMinROI' : bigint,
-  'budgetAllocation' : BudgetAllocation,
-  'hasBusinessBankAccount' : boolean,
-  'emergencyContactPhone' : string,
-  'emergencyContactName' : string,
-  'expectedMaxROI' : bigint,
+export interface Founder {
+  id: string;
+  principal: Principal;
+  fullName: string;
+  email: string;
+  governmentId: string;
+  isVerified: boolean;
+  registrationDate: bigint;
+  phoneNumber: string;
 }
-export interface CreateInvestmentRequest {
-  'agreements' : Array<boolean>,
-  'farmInfo' : FarmInfoRequest,
-  'documents' : Array<InvestmentDocument>,
-  'experience' : ExperienceRequest,
-  'budget' : BudgetRequest,
+export interface FounderRegistrationRequest {
+  fullName: string;
+  email: string;
+  governmentId: string;
+  phoneNumber: string;
 }
-export type CropType = { 'Corn' : null } |
-  { 'Rice' : null } |
-  { 'Vegetables' : null } |
-  { 'Other' : string } |
-  { 'Fruits' : null } |
-  { 'Coffee' : null };
-export type CultivationMethod = { 'Conventional' : null } |
-  { 'Hydroponic' : null } |
-  { 'Organic' : null };
-export interface Document {
-  'documentType' : DocumentType,
-  'fileHash' : string,
-  'fileName' : string,
-  'uploadedAt' : bigint,
+export type FounderRegistrationResult = { ok: Founder } | { err: string };
+export type FounderUpdateResult = { ok: null } | { err: string };
+export interface ICPTransferRequest {
+  to: Principal;
+  memo: [] | [string];
+  amount: bigint;
 }
-export type DocumentType = { 'SelfiePhoto' : null } |
-  { 'GovernmentID' : null } |
-  { 'LandCertificate' : null } |
-  { 'BusinessLicense' : null };
-export type DocumentType__1 = { 'AgriculturalCertification' : null } |
-  { 'PreviousHarvestPhoto' : null } |
-  { 'LandCertificate' : null } |
-  { 'CommunityEndorsement' : null } |
-  { 'GovernmentPermit' : null } |
-  { 'FarmPhoto' : null } |
-  { 'SoilTestResult' : null } |
-  { 'LeaseAgreement' : null };
-export type ExperienceLevel = { 'Beginner' : null } |
-  { 'Experienced' : null } |
-  { 'Intermediate' : null };
-export interface ExperienceRequest {
-  'farmingExperience' : ExperienceLevel,
-  'cultivationMethod' : CultivationMethod,
-  'harvestTimeline' : HarvestTimeline,
-  'investmentDescription' : string,
-  'marketDistribution' : Array<MarketDistribution>,
-  'expectedYield' : string,
+export interface Investment {
+  id: string;
+  status: InvestmentStatus;
+  transactionHash: [] | [string];
+  investorPrincipal: Principal;
+  tokenIds: Array<bigint>;
+  collectionId: string;
+  investorId: string;
+  projectId: string;
+  investmentDate: bigint;
+  quantity: bigint;
+  founderId: string;
+  pricePerToken: bigint;
+  founderPrincipal: Principal;
+  amount: bigint;
 }
-export interface FarmInfoRequest {
-  'farmSize' : string,
-  'country' : string,
-  'gpsCoordinates' : [] | [string],
-  'stateProvince' : string,
-  'cityDistrict' : string,
-  'accessRoads' : AccessRoadCondition,
-  'landOwnership' : LandOwnership,
-  'cropType' : CropType,
-  'waterSource' : string,
-  'fundingRequired' : bigint,
+export type InvestmentStatus =
+  | { Failed: null }
+  | { Refunded: null }
+  | { Processing: null }
+  | { Completed: null }
+  | { Pending: null };
+export interface InvestmentSummary {
+  id: string;
+  status: InvestmentStatus;
+  currentValue: [] | [bigint];
+  projectTitle: string;
+  investmentDate: bigint;
+  quantity: bigint;
+  amount: bigint;
 }
-export interface FarmNFTMetadata {
-  'soldSupply' : bigint,
-  'farmerId' : Principal,
-  'fundingAmount' : bigint,
-  'area' : string,
-  'createdAt' : bigint,
-  'harvestTimeline' : string,
-  'totalSupply' : bigint,
-  'imageUrl' : [] | [string],
-  'projectStatus' : string,
-  'cropType' : string,
-  'investmentId' : bigint,
-  'nftPrice' : bigint,
-  'location' : string,
-  'availableSupply' : bigint,
-  'expectedYield' : string,
+export interface Investor {
+  id: string;
+  principal: Principal;
+  fullName: string;
+  email: string;
+  isVerified: boolean;
+  registrationDate: bigint;
 }
-export type FarmerId = Principal;
-export interface FarmerProfile {
-  'documents' : Array<Document>,
-  'farmerId' : FarmerId,
-  'lastUpdated' : bigint,
-  'fullName' : string,
-  'isActive' : boolean,
-  'email' : string,
-  'governmentId' : string,
-  'registrationDate' : bigint,
-  'phoneNumber' : string,
-  'verificationStatus' : VerificationStatus,
+export interface InvestorRegistrationRequest {
+  fullName: string;
+  email: string;
 }
-export type FarmerRegistrationResult = { 'Error' : string } |
-  { 'AlreadyRegistered' : FarmerId } |
-  { 'Success' : FarmerId } |
-  { 'InvalidData' : string };
-export interface FarmerStats {
-  'pendingVerification' : bigint,
-  'approvedFarmers' : bigint,
-  'rejectedFarmers' : bigint,
-  'totalFarmers' : bigint,
-}
-export type HarvestTimeline = { 'Short' : null } |
-  { 'Long' : null } |
-  { 'Medium' : null };
-export interface InvestmentDocument {
-  'documentType' : DocumentType__1,
-  'isRequired' : boolean,
-  'fileHash' : string,
-  'fileName' : string,
-  'uploadedAt' : bigint,
-}
-export type InvestmentId = bigint;
-export interface InvestmentProject {
-  'id' : InvestmentId,
-  'agreements' : Array<boolean>,
-  'status' : InvestmentStatus,
-  'farmInfo' : FarmInfoRequest,
-  'documents' : Array<InvestmentDocument>,
-  'farmerId' : FarmerId,
-  'rejectedReason' : [] | [string],
-  'approvedAt' : [] | [bigint],
-  'createdAt' : bigint,
-  'lastUpdated' : bigint,
-  'experience' : ExperienceRequest,
-  'budget' : BudgetRequest,
-  'verificationNotes' : [] | [string],
-}
-export type InvestmentProjectResult = { 'Error' : string } |
-  { 'FarmerNotVerified' : null } |
-  { 'Success' : InvestmentId } |
-  { 'InvalidData' : string };
-export interface InvestmentStats {
-  'pendingVerification' : bigint,
-  'approvedProjects' : bigint,
-  'activeProjects' : bigint,
-  'totalProjects' : bigint,
-  'completedProjects' : bigint,
-  'rejectedProjects' : bigint,
-}
-export type InvestmentStatus = { 'InVerification' : null } |
-  { 'Active' : null } |
-  { 'PendingVerification' : null } |
-  { 'Approved' : null } |
-  { 'Draft' : null } |
-  { 'Rejected' : null } |
-  { 'Cancelled' : null } |
-  { 'Completed' : null };
-export type InvestorId = Principal;
-export interface InvestorInvestment {
-  'status' : { 'Sold' : null } |
-    { 'Active' : null } |
-    { 'Matured' : null },
-  'purchaseDate' : bigint,
-  'investmentAmount' : bigint,
-  'currentValue' : bigint,
-  'nftTokenIds' : Array<bigint>,
-  'investmentId' : bigint,
-}
-export interface InvestorPortfolio {
-  'totalValue' : bigint,
-  'roiPercentage' : number,
-  'investments' : Array<InvestorInvestment>,
-  'totalReturns' : bigint,
-  'investor' : InvestorProfile,
-}
-export interface InvestorProfile {
-  'status' : InvestorStatus,
-  'lastUpdated' : bigint,
-  'investorId' : InvestorId,
-  'activeInvestments' : bigint,
-  'fullName' : string,
-  'isActive' : boolean,
-  'email' : string,
-  'portfolioValue' : bigint,
-  'registrationDate' : bigint,
-  'totalInvestmentAmount' : bigint,
-}
-export type InvestorRegistrationResult = { 'Error' : string } |
-  { 'AlreadyRegistered' : InvestorId } |
-  { 'Success' : InvestorId } |
-  { 'InvalidData' : string };
-export interface InvestorStats {
-  'activeInvestors' : bigint,
-  'totalInvestmentVolume' : bigint,
-  'inactiveInvestors' : bigint,
-  'averageInvestmentAmount' : bigint,
-  'suspendedInvestors' : bigint,
-  'totalInvestors' : bigint,
-}
-export type InvestorStatus = { 'Inactive' : null } |
-  { 'Active' : null } |
-  { 'Suspended' : null };
-export type LandOwnership = { 'Partnership' : null } |
-  { 'Leased' : null } |
-  { 'Owned' : null };
-export type MarketDistribution = { 'LocalMarkets' : null } |
-  { 'ExportBuyers' : null } |
-  { 'DirectToConsumer' : null } |
-  { 'ProcessingIndustries' : null } |
-  { 'Cooperatives' : null } |
-  { 'ContractFarming' : null };
-export type MintError = {
-    'GenericError' : { 'message' : string, 'error_code' : bigint }
-  } |
-  { 'Unauthorized' : null } |
-  { 'InvalidRecipient' : null } |
-  { 'TokenIdAlreadyExists' : null };
-export type MintResult = { 'Ok' : TokenId } |
-  { 'Err' : MintError };
+export type InvestorRegistrationResult = { ok: Investor } | { err: string };
+export type InvestorUpdateResult = { ok: null } | { err: string };
 export interface NFTCollection {
-  'soldSupply' : bigint,
-  'tokenIds' : Array<TokenId>,
-  'createdAt' : bigint,
-  'totalSupply' : bigint,
-  'investmentId' : bigint,
-  'nftPrice' : bigint,
-  'availableSupply' : bigint,
+  id: string;
+  metadata: CollectionMetadata;
+  createdAt: bigint;
+  createdBy: Principal;
+  totalSupply: bigint;
+  isActive: boolean;
+  projectId: string;
+  pricePerToken: bigint;
+  maxSupply: bigint;
 }
-export interface PurchaseNFTRequest {
-  'quantity' : bigint,
-  'investmentId' : bigint,
-  'paymentAmount' : bigint,
+export interface Project {
+  id: string;
+  status: ProjectStatus;
+  title: string;
+  fundingRaised: bigint;
+  projectType: ProjectType;
+  investorCount: bigint;
+  createdAt: bigint;
+  tags: Array<string>;
+  maxInvestment: [] | [bigint];
+  minInvestment: bigint;
+  description: string;
+  updatedAt: bigint;
+  targetDate: [] | [bigint];
+  founderId: string;
+  category: string;
+  launchDate: [] | [bigint];
+  expectedROI: string;
+  fundingGoal: bigint;
+  founderPrincipal: Principal;
+  riskLevel: string;
+  location: string;
+  timeline: string;
 }
-export type PurchaseNFTResult = { 'Error' : string } |
-  { 'InsufficientPayment' : { 'provided' : bigint, 'required' : bigint } } |
-  { 'InvalidQuantity' : null } |
-  {
-    'Success' : {
-      'tokenIds' : Array<TokenId>,
-      'totalPaid' : bigint,
-      'remainingAvailable' : bigint,
-    }
-  } |
-  { 'InsufficientSupply' : { 'requested' : bigint, 'available' : bigint } } |
-  { 'ProjectNotFound' : null };
-export interface RegisterFarmerRequest {
-  'fullName' : string,
-  'email' : string,
-  'governmentId' : string,
-  'phoneNumber' : string,
+export interface ProjectCreateRequest {
+  title: string;
+  projectType: ProjectType;
+  tags: Array<string>;
+  maxInvestment: [] | [bigint];
+  minInvestment: bigint;
+  description: string;
+  targetDate: [] | [bigint];
+  category: string;
+  expectedROI: string;
+  fundingGoal: bigint;
+  riskLevel: string;
+  location: string;
+  timeline: string;
 }
-export interface RegisterInvestorRequest {
-  'fullName' : string,
-  'email' : string,
+export type ProjectResult = { ok: Project } | { err: string };
+export type ProjectStatus =
+  | { Active: null }
+  | { InReview: null }
+  | { Draft: null }
+  | { Rejected: null }
+  | { Funded: null }
+  | { Cancelled: null }
+  | { InProgress: null }
+  | { Completed: null };
+export type ProjectType =
+  | { Healthcare: null }
+  | { RealEstate: null }
+  | { Energy: null }
+  | { Technology: null }
+  | { Environment: null }
+  | { Services: null }
+  | { Other: null }
+  | { Agriculture: null }
+  | { Education: null }
+  | { Finance: null }
+  | { Manufacturing: null };
+export interface ProjectUpdateRequest {
+  title: string;
+  projectType: ProjectType;
+  tags: Array<string>;
+  maxInvestment: [] | [bigint];
+  minInvestment: bigint;
+  description: string;
+  targetDate: [] | [bigint];
+  category: string;
+  expectedROI: string;
+  fundingGoal: bigint;
+  riskLevel: string;
+  location: string;
+  timeline: string;
 }
-export type Result = { 'ok' : null } |
-  { 'err' : string };
-export type Result_1 = { 'ok' : TokenId } |
-  { 'err' : string };
-export interface Standard { 'url' : string, 'name' : string }
-export type TokenId = bigint;
-export type TokenMetadata = Array<[string, Value]>;
-export interface TransferArg {
-  'to' : Account,
-  'token_id' : TokenId,
-  'memo' : [] | [Uint8Array | number[]],
-  'from_subaccount' : [] | [Uint8Array | number[]],
-  'created_at_time' : [] | [bigint],
+export type ProjectUpdateResult = { ok: null } | { err: string };
+export interface PurchaseRequest {
+  collectionId: string;
+  projectId: string;
+  quantity: bigint;
+  paymentAmount: bigint;
 }
-export type TransferError = {
-    'GenericError' : { 'message' : string, 'error_code' : bigint }
-  } |
-  { 'NonExistentTokenId' : null } |
-  { 'Duplicate' : { 'duplicate_of' : TokenId } } |
-  { 'Unauthorized' : null } |
-  { 'CreatedInFuture' : { 'ledger_time' : bigint } } |
-  { 'InvalidRecipient' : null } |
-  { 'GenericBatchError' : { 'message' : string, 'error_code' : bigint } } |
-  { 'TooOld' : null };
-export type TransferResult = { 'Ok' : TokenId } |
-  { 'Err' : TransferError };
-export interface UploadDocumentRequest {
-  'documentType' : DocumentType,
-  'fileHash' : string,
-  'fileName' : string,
-}
-export type Value = { 'Int' : bigint } |
-  { 'Map' : Array<[string, Value]> } |
-  { 'Nat' : bigint } |
-  { 'Blob' : Uint8Array | number[] } |
-  { 'Text' : string } |
-  { 'Array' : Array<Value> };
-export type VerificationStatus = { 'Approved' : null } |
-  { 'InReview' : null } |
-  { 'Rejected' : null } |
-  { 'Pending' : null };
-export interface VerificationStep {
-  'status' : { 'Failed' : null } |
-    { 'InProgress' : null } |
-    { 'Completed' : null } |
-    { 'Pending' : null },
-  'completedAt' : [] | [bigint],
-  'description' : string,
-  'stepName' : string,
-  'notes' : [] | [string],
-  'estimatedTime' : string,
-}
-export interface VerificationTracker {
-  'lastUpdated' : bigint,
-  'overallProgress' : bigint,
-  'steps' : Array<VerificationStep>,
-  'currentStep' : string,
-  'investmentId' : InvestmentId,
-}
+export type PurchaseResult = { ok: Investment } | { err: string };
+export type TransferResult = { ok: bigint } | { err: string };
 export interface _SERVICE {
-  'addInvestmentDocument' : ActorMethod<
-    [InvestmentId, InvestmentDocument],
-    Result
-  >,
-  'approveInvestmentAndMintNFT' : ActorMethod<
-    [InvestmentId, [] | [string], [] | [bigint]],
-    Result_1
-  >,
-  'calculateNFTPrice' : ActorMethod<[bigint, bigint], bigint>,
-  'checkInvestorRegistration' : ActorMethod<
-    [Array<Principal>],
-    Array<[Principal, boolean]>
-  >,
-  'createInvestmentProject' : ActorMethod<
-    [CreateInvestmentRequest],
-    InvestmentProjectResult
-  >,
-  'getAdminDashboardStats' : ActorMethod<
+  createNFTCollection: ActorMethod<[CreateCollectionRequest], CollectionResult>;
+  createProject: ActorMethod<[ProjectCreateRequest], ProjectResult>;
+  deleteProject: ActorMethod<[string], ProjectUpdateResult>;
+  founderExistsByEmail: ActorMethod<[string], boolean>;
+  getActiveNFTCollections: ActorMethod<[], Array<NFTCollection>>;
+  getActiveProjects: ActorMethod<[], Array<Project>>;
+  getAllFounders: ActorMethod<[], Array<Founder>>;
+  getAllInvestors: ActorMethod<[], Array<Investor>>;
+  getAllProjects: ActorMethod<[], Array<Project>>;
+  getFounder: ActorMethod<[string], [] | [Founder]>;
+  getFounderByEmail: ActorMethod<[string], [] | [Founder]>;
+  getFounderCount: ActorMethod<[], bigint>;
+  getICPTransferFee: ActorMethod<[], bigint>;
+  getInvestment: ActorMethod<[string], [] | [Investment]>;
+  getInvestmentsForMyProjects: ActorMethod<[], Array<Investment>>;
+  getInvestor: ActorMethod<[string], [] | [Investor]>;
+  getInvestorByEmail: ActorMethod<[string], [] | [Investor]>;
+  getInvestorCount: ActorMethod<[], bigint>;
+  getInvestorCountForProject: ActorMethod<[string], bigint>;
+  getMyFounderProfile: ActorMethod<[], [] | [Founder]>;
+  getMyICPBalance: ActorMethod<[], { ok: bigint } | { err: string }>;
+  getMyInvestmentSummaries: ActorMethod<[], Array<InvestmentSummary>>;
+  getMyInvestments: ActorMethod<[], Array<Investment>>;
+  getMyInvestorProfile: ActorMethod<[], [] | [Investor]>;
+  getMyProjects: ActorMethod<[], Array<Project>>;
+  getNFTCollection: ActorMethod<[string], [] | [NFTCollection]>;
+  getNFTCollectionsByProject: ActorMethod<[string], Array<NFTCollection>>;
+  getNFTStats: ActorMethod<[], CollectionStats>;
+  getPlatformStats: ActorMethod<
     [],
     {
-      'projects' : InvestmentStats,
-      'nfts' : {
-        'totalVolume' : bigint,
-        'averagePrice' : bigint,
-        'totalSupply' : bigint,
-        'totalCollections' : bigint,
-      },
-      'users' : { 'investors' : InvestorStats, 'farmers' : FarmerStats },
-      'financial' : {
-        'averageInvestmentSize' : bigint,
-        'platformRevenue' : bigint,
-        'totalInvestmentVolume' : bigint,
-      },
+      totalFundingRaised: bigint;
+      activeProjects: bigint;
+      totalFounders: bigint;
+      totalProjects: bigint;
+      totalInvestments: bigint;
+      totalInvestors: bigint;
     }
-  >,
-  'getAllFarmers' : ActorMethod<[], Array<FarmerProfile>>,
-  'getAllInvestmentProjects' : ActorMethod<[], Array<InvestmentProject>>,
-  'getAllInvestors' : ActorMethod<[], Array<InvestorProfile>>,
-  'getAllNFTCollections' : ActorMethod<[], Array<NFTCollection>>,
-  'getAllNFTs' : ActorMethod<[], Array<TokenId>>,
-  'getDetailedPortfolio' : ActorMethod<
-    [],
-    [] | [
-      {
-        'investments' : Array<
-          {
-            'nftTokens' : Array<TokenId>,
-            'roiPercentage' : number,
-            'investment' : InvestorInvestment,
-            'currentMarketValue' : bigint,
-            'project' : [] | [InvestmentProject],
-          }
-        >,
-        'summary' : {
-          'totalValue' : bigint,
-          'worstPerforming' : [] | [bigint],
-          'bestPerforming' : [] | [bigint],
-          'totalReturns' : bigint,
-          'overallROI' : number,
-        },
-        'investor' : InvestorProfile,
-      }
-    ]
-  >,
-  'getFarmNFTMetadata' : ActorMethod<[TokenId], [] | [FarmNFTMetadata]>,
-  'getFarmerProfile' : ActorMethod<[FarmerId], [] | [FarmerProfile]>,
-  'getFarmerRegistrationStats' : ActorMethod<[], FarmerStats>,
-  'getFarmersByStatus' : ActorMethod<
-    [VerificationStatus],
-    Array<FarmerProfile>
-  >,
-  'getInvestmentOpportunities' : ActorMethod<[], Array<InvestmentProject>>,
-  'getInvestmentProject' : ActorMethod<
-    [InvestmentId],
-    [] | [InvestmentProject]
-  >,
-  'getInvestmentProjectSummary' : ActorMethod<
-    [InvestmentId],
-    [] | [
-      {
-        'pricing' : [] | [
-          {
-            'soldSupply' : bigint,
-            'priceInICP' : number,
-            'totalSupply' : bigint,
-            'nftPrice' : bigint,
-            'fundingRequired' : bigint,
-            'availableSupply' : bigint,
-          }
-        ],
-        'nftCollection' : [] | [NFTCollection],
-        'project' : InvestmentProject,
-      }
-    ]
-  >,
-  'getInvestmentProjectsByFarmer' : ActorMethod<
-    [FarmerId],
-    Array<InvestmentProject>
-  >,
-  'getInvestmentProjectsByStatus' : ActorMethod<
-    [InvestmentStatus],
-    Array<InvestmentProject>
-  >,
-  'getInvestmentStats' : ActorMethod<[], InvestmentStats>,
-  'getInvestorPortfolio' : ActorMethod<[InvestorId], [] | [InvestorPortfolio]>,
-  'getInvestorProfile' : ActorMethod<[InvestorId], [] | [InvestorProfile]>,
-  'getInvestorRegistrationStats' : ActorMethod<[], InvestorStats>,
-  'getInvestorsByStatus' : ActorMethod<
-    [InvestorStatus],
-    Array<InvestorProfile>
-  >,
-  'getMarketplaceOverview' : ActorMethod<
-    [],
-    {
-      'activeProjects' : bigint,
-      'averageROI' : number,
-      'topPerformingCrops' : Array<string>,
-      'totalFundingAvailable' : bigint,
-      'totalInvestmentOpportunities' : bigint,
-    }
-  >,
-  'getMyDashboardData' : ActorMethod<
-    [],
-    {
-      'userType' : string,
-      'farmerData' : [] | [
-        {
-          'totalFundingRaised' : bigint,
-          'activeProjects' : bigint,
-          'totalProjects' : bigint,
-          'verificationStatus' : VerificationStatus,
-        }
-      ],
-      'investorData' : [] | [
-        {
-          'roiPercentage' : number,
-          'totalInvestments' : bigint,
-          'portfolioValue' : bigint,
-          'totalReturns' : bigint,
-        }
-      ],
-    }
-  >,
-  'getMyFarmerProfile' : ActorMethod<[], [] | [FarmerProfile]>,
-  'getMyInvestmentProjects' : ActorMethod<[], Array<InvestmentProject>>,
-  'getMyInvestorProfile' : ActorMethod<[], [] | [InvestorProfile]>,
-  'getMyNFTs' : ActorMethod<[], Array<TokenId>>,
-  'getMyPortfolio' : ActorMethod<[], [] | [InvestorPortfolio]>,
-  'getMyRegistrationStatus' : ActorMethod<
-    [],
-    {
-      'isFarmer' : boolean,
-      'isInvestor' : boolean,
-      'investorStatus' : [] | [InvestorStatus],
-      'farmerStatus' : [] | [VerificationStatus],
-    }
-  >,
-  'getNFTCollection' : ActorMethod<[bigint], [] | [NFTCollection]>,
-  'getNFTStats' : ActorMethod<
-    [],
-    {
-      'averagePrice' : bigint,
-      'totalSupply' : bigint,
-      'totalCollections' : bigint,
-    }
-  >,
-  'getNFTsByFarmer' : ActorMethod<[Principal], Array<TokenId>>,
-  'getNFTsByInvestment' : ActorMethod<[bigint], Array<TokenId>>,
-  'getPlatformMetrics' : ActorMethod<
-    [],
-    {
-      'averageInvestmentSize' : bigint,
-      'platformGrowthRate' : number,
-      'totalInvestmentProjects' : bigint,
-      'totalInvestmentVolume' : bigint,
-      'totalUsers' : bigint,
-      'totalFarmers' : bigint,
-      'totalInvestors' : bigint,
-    }
-  >,
-  'getPlatformOverview' : ActorMethod<
-    [],
-    {
-      'investors' : InvestorStats,
-      'farmers' : FarmerStats,
-      'nfts' : { 'totalSupply' : bigint, 'totalCollections' : bigint },
-      'investments' : InvestmentStats,
-    }
-  >,
-  'getPricingInfo' : ActorMethod<
-    [bigint],
-    [] | [
-      {
-        'soldSupply' : bigint,
-        'priceInICP' : number,
-        'totalSupply' : bigint,
-        'nftPrice' : bigint,
-        'fundingRequired' : bigint,
-        'availableSupply' : bigint,
-      }
-    ]
-  >,
-  'getRecentInvestmentActivity' : ActorMethod<
-    [bigint],
-    Array<InvestmentProject>
-  >,
-  'getTopInvestors' : ActorMethod<[bigint], Array<InvestorProfile>>,
-  'getVerificationTracker' : ActorMethod<
-    [InvestmentId],
-    [] | [VerificationTracker]
-  >,
-  'healthCheck' : ActorMethod<[], string>,
-  'icrc7_approve' : ActorMethod<[Array<ApprovalInfo>], Array<ApprovalResult>>,
-  'icrc7_balance_of' : ActorMethod<[Array<Account>], Array<bigint>>,
-  'icrc7_description' : ActorMethod<[], [] | [string]>,
-  'icrc7_logo' : ActorMethod<[], [] | [string]>,
-  'icrc7_name' : ActorMethod<[], string>,
-  'icrc7_owner_of' : ActorMethod<[Array<TokenId>], Array<[] | [Account]>>,
-  'icrc7_supported_standards' : ActorMethod<[], Array<Standard>>,
-  'icrc7_symbol' : ActorMethod<[], string>,
-  'icrc7_token_metadata' : ActorMethod<
-    [Array<TokenId>],
-    Array<[] | [TokenMetadata]>
-  >,
-  'icrc7_tokens_of' : ActorMethod<
-    [Account, [] | [TokenId], [] | [bigint]],
-    Array<TokenId>
-  >,
-  'icrc7_total_supply' : ActorMethod<[], bigint>,
-  'icrc7_transfer' : ActorMethod<[Array<TransferArg>], Array<TransferResult>>,
-  'isActiveInvestor' : ActorMethod<[InvestorId], boolean>,
-  'isFarmerVerified' : ActorMethod<[FarmerId], boolean>,
-  'mintFarmNFT' : ActorMethod<[InvestmentId, [] | [bigint]], MintResult>,
-  'purchaseNFT' : ActorMethod<[PurchaseNFTRequest], PurchaseNFTResult>,
-  'registerFarmer' : ActorMethod<
-    [RegisterFarmerRequest],
-    FarmerRegistrationResult
-  >,
-  'registerInvestor' : ActorMethod<
-    [RegisterInvestorRequest],
+  >;
+  getProject: ActorMethod<[string], [] | [Project]>;
+  getProjectCount: ActorMethod<[], bigint>;
+  getProjectsByFounder: ActorMethod<[string], Array<Project>>;
+  getProjectsByStatus: ActorMethod<[ProjectStatus], Array<Project>>;
+  getTotalFundingForProject: ActorMethod<[string], bigint>;
+  healthCheck: ActorMethod<[], string>;
+  investorExistsByEmail: ActorMethod<[string], boolean>;
+  purchaseNFTs: ActorMethod<[PurchaseRequest], PurchaseResult>;
+  registerFounder: ActorMethod<
+    [FounderRegistrationRequest],
+    FounderRegistrationResult
+  >;
+  registerInvestor: ActorMethod<
+    [InvestorRegistrationRequest],
     InvestorRegistrationResult
-  >,
-  'searchInvestmentProjects' : ActorMethod<
-    [
-      [] | [CropType],
-      [] | [string],
-      [] | [bigint],
-      [] | [bigint],
-      [] | [InvestmentStatus],
-    ],
-    Array<InvestmentProject>
-  >,
-  'updateFarmerProfile' : ActorMethod<
-    [[] | [string], [] | [string], [] | [string]],
-    Result
-  >,
-  'updateFarmerVerificationStatus' : ActorMethod<
-    [FarmerId, VerificationStatus],
-    Result
-  >,
-  'updateInvestmentProjectStatus' : ActorMethod<
-    [InvestmentId, InvestmentStatus, [] | [string]],
-    Result
-  >,
-  'updateInvestmentValue' : ActorMethod<[InvestorId, bigint, bigint], Result>,
-  'updateInvestorProfile' : ActorMethod<[[] | [string], [] | [string]], Result>,
-  'updateInvestorStatus' : ActorMethod<[InvestorId, InvestorStatus], Result>,
-  'updateNFTMetadata' : ActorMethod<
-    [TokenId, [] | [string], [] | [string]],
-    Result
-  >,
-  'uploadDocument' : ActorMethod<[UploadDocumentRequest], Result>,
+  >;
+  simulateICPTransfer: ActorMethod<[ICPTransferRequest], TransferResult>;
+  submitProjectForReview: ActorMethod<[string], ProjectUpdateResult>;
+  transferICP: ActorMethod<[ICPTransferRequest], TransferResult>;
+  updateFounderVerification: ActorMethod<
+    [string, boolean],
+    FounderUpdateResult
+  >;
+  updateInvestorVerification: ActorMethod<
+    [string, boolean],
+    InvestorUpdateResult
+  >;
+  updateMyFounderProfile: ActorMethod<
+    [string, FounderRegistrationRequest],
+    FounderUpdateResult
+  >;
+  updateMyInvestorProfile: ActorMethod<
+    [string, InvestorRegistrationRequest],
+    InvestorUpdateResult
+  >;
+  updateProject: ActorMethod<
+    [string, ProjectUpdateRequest],
+    ProjectUpdateResult
+  >;
+  updateProjectStatus: ActorMethod<
+    [string, ProjectStatus],
+    ProjectUpdateResult
+  >;
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
