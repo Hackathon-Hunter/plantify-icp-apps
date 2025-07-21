@@ -24,7 +24,7 @@ export const CardVertical: React.FC<CardVerticalProps> = ({
   return (
     <div
       className={cn(
-        "bg-neutral-900 text-white rounded-xl overflow-hidden border border-neutral-800 shadow-md flex flex-col",
+        "bg-neutral-900 text-white overflow-hidden border border-neutral-800 shadow-md flex flex-col",
         "w-full",
         className
       )}
@@ -59,7 +59,7 @@ export const CardVertical: React.FC<CardVerticalProps> = ({
 
         {buttonText && (
           <div className="mt-4 sm:mt-6">
-            <button className="bg-white text-black text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-300 transition-colors flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
+            <button className="bg-white text-black text-sm font-medium px-4 py-2 hover:bg-gray-300 transition-colors flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
               {iconPosition === "left" && buttonIcon}
               <span>{buttonText}</span>
               {iconPosition === "right" && buttonIcon}
