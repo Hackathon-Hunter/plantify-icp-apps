@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState } from "react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/ui/Footer";
 import { CardVertical } from "@/components/ui/CardVertical"
 import { CardHorizontal } from "@/components/ui/CardHorizontal"
 import Navbar from "@/components/ui/Navbar";
@@ -17,6 +19,7 @@ import {
   BarChart3,
   Leaf,
   Search,
+  BanknoteArrowUp,
   Menu,
   X,
 } from "lucide-react";
@@ -138,8 +141,8 @@ const LandingPage = () => {
       <section
         className="relative pt-36 sm:pt-44 md:pt-56 lg:pt-64 pb-16 md:pb-24 bg-black"
       >
-        <div className="max-w-7xl px-4 mx-auto text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+        <div className="max-w-7xl px-4 mx-auto text-center lg:px-64">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal mb-6 text-white">
             Invest in the Future, <br /> One Startup at a Time.
           </h1>
           <p className="text-base sm:text-lg md:text-xl text-white mb-8 max-w-3xl mx-auto">
@@ -157,8 +160,9 @@ const LandingPage = () => {
               Explore Startups
             </Button>
             <Button
+              iconLeft={<BanknoteArrowUp />}
               size="lg"
-              className="bg-transparent border border-white text-white text-lg px-8 py-4 hover:bg-gray-800"
+              className="bg-transparent text-white text-lg px-8 py-4 hover:bg-gray-800"
               onClick={navigateToInvestor}
             >
               Raise Capital
@@ -171,15 +175,14 @@ const LandingPage = () => {
           style={{
             backgroundImage: "url('/assets/images/bg-gradient.png')"
           }}>
-          <div className="relative max-w-7xl mx-auto pt-64">
+          <div className="relative max-w-7xl mx-auto sm:24 lg:pt-64 sm:px-12 lg:px-44">
             <div className="relative w-full h-full">
-              <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] max-h-[80vh] bg-black rounded-xl border-2 sm:border-3 md:border-4 border-gray-700 flex items-center justify-center relative overflow-hidden">
+              <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[600px] max-h-[80vh] bg-black rounded-xl border-2 sm:border-3 md:border-4 border-gray-700 flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-800/30 via-transparent to-gray-900/30 rounded-lg"></div>
                 <div className="text-gray-400 text-center z-10">
                 </div>
               </div>
 
-              {/* Bottom gradient overlay */}
               <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-16 md:h-20 lg:h-24 xl:h-32 bg-gradient-to-t from-black via-black/80 to-transparent rounded-b-lg pointer-events-none"></div>
             </div>
           </div>
@@ -187,10 +190,10 @@ const LandingPage = () => {
       </section>
 
       {/* Section 2 */}
-      <section className="py-32 sm:py-44 md:py-56 lg:py-64 px-4 bg-black">
+      <section className="py-32 sm:py-44 md:py-56 lg:py-64 sm:px-12 lg:px-64 bg-black">
         <div className="max-w-7xl mx-auto w-full px-4">
           <div className="flex flex-col gap-6 items-center text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-semibold text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-normal text-white">
               Revolutionizing Venture Capital with Web3
             </h1>
             <p className="text-gray-400 text-base sm:text-lg max-w-3xl">
@@ -209,14 +212,15 @@ const LandingPage = () => {
       </section>
 
       {/* Who Plantfy Section */}
-      <section className="py-20 px-4 bg-black text-white">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-44 bg-black text-white">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between md:items-start text-center md:text-left mb-16 gap-6">
-            <h2 className="text-3xl md:text-4xl font-bold">
+          <div className="flex flex-col md:flex-row justify-between md:items-start text-center md:text-left mb-12 md:mb-16 gap-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal">
               Who Plantify <br /> is Built For
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl">
-              Whether you're building the next big thing or searching for early-stage opportunities, CryptoFund empowers both founders and investors with a transparent, blockchain-driven platform.
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto md:mx-0">
+              Whether you're building the next big thing or searching for early-stage opportunities,
+              CryptoFund empowers both founders and investors with a transparent, blockchain-driven platform.
             </p>
           </div>
 
@@ -244,8 +248,8 @@ const LandingPage = () => {
         }}
       >
 
-        <div className="relative z-10 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-6 tracking-tight">
+        <div className="relative z-10 sm:px-12 lg:px-64">
+          <h2 className="text-3xl md:text-4xl font-normal mb-6 tracking-tight">
             Compliance First, Always
           </h2>
           <p className="text-gray-300 mb-6 text-lg leading-relaxed">
@@ -266,11 +270,11 @@ const LandingPage = () => {
       </section>
 
       {/* Power Futures Section */}
-      <section className="py-20 px-4 bg-black text-white">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-44 bg-black text-white">
         <div className="max-w-7xl mx-auto">
           {/* Heading */}
           <div className="flex flex-col gap-2 text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-normal mb-4">
               Power Features That <br /> Set Plantify Apart
             </h2>
             <p className="text-xl text-gray-400">
@@ -302,9 +306,9 @@ const LandingPage = () => {
       </section>
 
       {/* Fair Section */}
-      <section className="py-20 sm:py-28 md:py-32 px-4 bg-black text-white">
+      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-44 sm:px-12 lg:px-44 bg-black text-white">
         <div className="max-w-4xl mx-auto text-center flex flex-col gap-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <h2 className="text-3xl md:text-4xl font-normal mb-6">
             Fair, Founder-Friendly Fees
           </h2>
 
@@ -326,7 +330,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center flex flex-col justify-center items-center">
             <div className="max-w-[800px]">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal mb-6 text-white">
                 Start Your Jouney Today
               </h1>
 
@@ -336,7 +340,7 @@ const LandingPage = () => {
                   <Button
                     iconLeft={<Search />}
                     size="lg"
-                    className="bg-gray-700 text-white hover:bg-gray-800 hover:text-white text-sm px-8 py-4"
+                    className="bg-white text-black hover:bg-gray-800 hover:text-white text-sm px-8 py-4"
                     onClick={navigateToInvestor}
                   >
                     Own the future, one NFT at a time
@@ -345,8 +349,9 @@ const LandingPage = () => {
                 <div className="flex flex-col gap-3">
                   <span className="text-white">For founders</span>
                   <Button
+                    iconLeft={<BanknoteArrowUp />}
                     size="lg"
-                    className="bg-gray-700 text-white text-sm px-8 py-4 hover:bg-gray-800"
+                    className="bg-white text-black text-sm px-8 py-4 hover:bg-gray-800"
                     onClick={navigateToInvestor}
                   >
                     Turn your users into investors
@@ -362,7 +367,7 @@ const LandingPage = () => {
           style={{
             backgroundImage: "url('/assets/images/bg-gradient.png')"
           }}>
-          <div className="relative max-w-7xl mx-auto pt-64">
+          <div className="relative max-w-7xl mx-auto sm:24 lg:pt-64 sm:px-12 lg:px-44">
             <div className="relative w-full h-full">
               <div className="w-full h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] max-h-[80vh] bg-black rounded-xl border-2 sm:border-3 md:border-4 border-gray-700 flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-800/30 via-transparent to-gray-900/30 rounded-lg"></div>
@@ -377,20 +382,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-black text-white px-4 py-20 sm:py-28 md:py-32 relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-[6rem] sm:text-[10rem] md:text-[14rem] lg:text-[18rem] xl:text-[22rem] font-bold text-gray-800 opacity-40 select-none leading-none tracking-tighter text-center whitespace-nowrap">
-            Plantify
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center text-sm text-gray-400">
-            <p>&copy; 2025 Plantify</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
     </div >
   );
