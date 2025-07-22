@@ -1,145 +1,44 @@
-import {
-  InvestorPortfolio,
-  InvestorId,
-  TokenId,
-  InvestorProfile,
-} from "./types";
-// import { plantify_backend } from "./declarations";
-import { 
-  mockInvestorPortfolio,
-  mockTopInvestors,
-  mockInvestorProfile 
-} from "./mock/investorData";
-import { 
-  mockMyNFTs 
-} from "./mock/nftData";
-import { 
-  mockInvestmentProject 
-} from "./mock/farmData";
+import { plantify_backend } from "./declarations";
+import type {
+  Investment,
+  InvestmentSummary
+} from "./declarations/plantify-backend.did";
 
-export const getMyPortfolio = async (): Promise<InvestorPortfolio | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getMyPortfolio();
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockInvestorPortfolio;
-  } catch (error) {
-    console.error("Error fetching my portfolio:", error);
-    throw error;
-  }
+// Investment Portfolio Management
+export const getMyInvestments = async (): Promise<Investment[]> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getMyInvestments();
 };
 
-export const getInvestorPortfolio = async (
-  _investorId: InvestorId
-): Promise<InvestorPortfolio | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getInvestorPortfolio(investorId);
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockInvestorPortfolio;
-  } catch (error) {
-    console.error("Error fetching investor portfolio:", error);
-    throw error;
-  }
+export const getMyInvestmentSummaries = async (): Promise<InvestmentSummary[]> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getMyInvestmentSummaries();
 };
 
-export const getDetailedPortfolio = async () => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getDetailedPortfolio();
-    // return result.length > 0 ? result[0] : null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 700));
-    return {
-      investor: mockInvestorProfile,
-      investments: [
-        {
-          investment: mockInvestorPortfolio.investments[0],
-          project: [mockInvestmentProject],
-          currentMarketValue: BigInt(27500000),
-          roiPercentage: 10.0,
-          nftTokens: mockMyNFTs
-        }
-      ],
-      summary: {
-        totalValue: BigInt(55000000),
-        totalReturns: BigInt(5000000),
-        overallROI: 10.0,
-        bestPerforming: [BigInt(1)],
-        worstPerforming: []
-      }
-    };
-  } catch (error) {
-    console.error("Error fetching detailed portfolio:", error);
-    throw error;
-  }
+export const getInvestment = async (id: string): Promise<Investment | null> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  const result = await plantify_backend.getInvestment(id);
+  return result[0] ?? null;
 };
 
-export const getMyNFTs = async (): Promise<TokenId[]> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getMyNFTs();
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockMyNFTs;
-  } catch (error) {
-    console.error("Error fetching my NFTs:", error);
-    throw error;
-  }
+export const getInvestmentsForMyProjects = async (): Promise<Investment[]> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getInvestmentsForMyProjects();
 };
 
-export const getMyInvestorProfile = async (): Promise<InvestorProfile | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getMyInvestorProfile();
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockInvestorProfile;
-  } catch (error) {
-    console.error("Error fetching my investor profile:", error);
-    throw error;
-  }
+// Balance Management
+export const getMyICPBalance = async (): Promise<{ ok: bigint } | { err: string }> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getMyICPBalance();
 };
 
-export const getInvestorProfile = async (
-  _investorId: InvestorId
-): Promise<InvestorProfile | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getInvestorProfile(investorId);
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockInvestorProfile;
-  } catch (error) {
-    console.error("Error fetching investor profile:", error);
-    throw error;
+// Format ICP balance for display (converts from e8s to ICP)
+export const getFormattedICPBalance = async (): Promise<number | null> => {
+  const balanceResult = await getMyICPBalance();
+  
+  if ('ok' in balanceResult) {
+    return Number(balanceResult.ok) / 100000000; // Convert from e8s to ICP
   }
+  
+  return null;
 };
-
-export const getTopInvestors = async (_limit: bigint): Promise<InvestorProfile[]> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getTopInvestors(limit);
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockTopInvestors;
-  } catch (error) {
-    console.error("Error fetching top investors:", error);
-    throw error;
-  }
-}; 

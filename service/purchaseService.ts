@@ -1,129 +1,54 @@
-import {
-  PurchaseNFTRequest,
-  PurchaseNFTResult,
-  NFTCollection,
-  FarmNFTMetadata,
-  TokenId,
-} from "./types";
-// import { plantify_backend } from "./declarations";
-import { 
-  mockPurchaseResult,
-  mockNFTCollection,
-  mockFarmNFTMetadata,
-  mockNFTStats,
-  mockMyNFTs 
-} from "./mock/nftData";
+import { plantify_backend } from "./declarations";
+import type {
+  PurchaseRequest,
+  PurchaseResult,
+  Investment,
+  ICPTransferRequest,
+  TransferResult,
+  NFTCollection
+} from "./declarations/plantify-backend.did";
 
-export const purchaseNFT = async (
-  _request: PurchaseNFTRequest
-): Promise<PurchaseNFTResult> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.purchaseNFT(request);
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return mockPurchaseResult;
-  } catch (error) {
-    console.error("Error purchasing NFT:", error);
-    throw error;
-  }
+// NFT Purchase Functions
+export const purchaseNFTs = async (request: PurchaseRequest): Promise<PurchaseResult> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.purchaseNFTs(request);
 };
 
-export const getNFTCollection = async (
-  _investmentId: bigint
-): Promise<NFTCollection | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getNFTCollection(investmentId);
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockNFTCollection;
-  } catch (error) {
-    console.error("Error fetching NFT collection:", error);
-    throw error;
-  }
+export const getInvestment = async (id: string): Promise<Investment | null> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  const result = await plantify_backend.getInvestment(id);
+  return result[0] ?? null;
 };
 
-export const getFarmNFTMetadata = async (
-  _tokenId: TokenId
-): Promise<FarmNFTMetadata | null> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getFarmNFTMetadata(tokenId);
-    // return result[0] || null;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockFarmNFTMetadata;
-  } catch (error) {
-    console.error("Error fetching farm NFT metadata:", error);
-    throw error;
-  }
+export const getMyInvestments = async (): Promise<Investment[]> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getMyInvestments();
 };
 
-export const calculateNFTPrice = async (
-  fundingAmount: bigint,
-  totalSupply: bigint
-): Promise<bigint> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.calculateNFTPrice(fundingAmount, totalSupply);
-    // return result;
-    
-    // Return mock calculation for now
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return fundingAmount / totalSupply; // Simple mock calculation
-  } catch (error) {
-    console.error("Error calculating NFT price:", error);
-    throw error;
-  }
+// ICP Transfer Functions
+export const transferICP = async (request: ICPTransferRequest): Promise<TransferResult> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.transferICP(request);
 };
 
-export const getNFTsByInvestment = async (_investmentId: bigint): Promise<TokenId[]> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getNFTsByInvestment(investmentId);
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockMyNFTs.slice(0, 3); // Return subset based on investment
-  } catch (error) {
-    console.error("Error fetching NFTs by investment:", error);
-    throw error;
-  }
+export const simulateICPTransfer = async (request: ICPTransferRequest): Promise<TransferResult> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.simulateICPTransfer(request);
 };
 
-export const getNFTStats = async () => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getNFTStats();
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockNFTStats;
-  } catch (error) {
-    console.error("Error fetching NFT stats:", error);
-    throw error;
-  }
+export const getICPTransferFee = async (): Promise<bigint> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getICPTransferFee();
 };
 
-export const getAllNFTs = async (): Promise<TokenId[]> => {
-  try {
-    // TODO: Replace with actual API call when backend is ready
-    // const result = await plantify_backend.getAllNFTs();
-    // return result;
-    
-    // Return mock data for now
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockMyNFTs; // Reuse mock NFTs as placeholder
-  } catch (error) {
-    console.error("Error fetching all NFTs:", error);
-    throw error;
-  }
+export const getMyICPBalance = async (): Promise<{ ok: bigint } | { err: string }> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  return await plantify_backend.getMyICPBalance();
+};
+
+// NFT Collection functions
+export const getNFTCollection = async (id: string): Promise<NFTCollection | null> => {
+  if (!plantify_backend) throw new Error("plantify_backend is not defined");
+  const result = await plantify_backend.getNFTCollection(id);
+  return result[0] ?? null;
 }; 
