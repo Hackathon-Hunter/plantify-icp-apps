@@ -3,89 +3,64 @@
 
 export type {
   // Core types
-  FarmerId,
-  InvestorId,
-  InvestmentId,
-  TokenId,
-
-  // Investment Project types
-  InvestmentProject,
-  InvestmentStatus,
-  InvestmentProjectResult,
-  CreateInvestmentRequest,
+  Project,
+  ProjectStatus,
+  ProjectType,
+  ProjectResult,
+  ProjectUpdateResult,
   
-  // Farm types
-  FarmerProfile,
-  FarmInfoRequest,
-  ExperienceRequest,
-  BudgetRequest,
-  BudgetAllocation,
+  // Collection types
+  NFTCollection,
+  CollectionMetadata,
+  CollectionResult,
+  CollectionStats,
+  CreateCollectionRequest,
+  
+  // Founder types
+  Founder,
+  FounderRegistrationRequest,
+  FounderRegistrationResult,
+  FounderUpdateResult,
   
   // Investor types
-  InvestorProfile,
-  InvestorPortfolio,
-  InvestorInvestment,
-  InvestorStatus,
-  
-  // NFT types
-  NFTCollection,
-  FarmNFTMetadata,
-  PurchaseNFTRequest,
-  PurchaseNFTResult,
-  
-  // Registration types
-  RegisterFarmerRequest,
-  FarmerRegistrationResult,
-  RegisterInvestorRequest,
+  Investor,
+  InvestorRegistrationRequest,
   InvestorRegistrationResult,
+  InvestorUpdateResult,
   
-  // Document types
-  Document,
-  InvestmentDocument,
-  UploadDocumentRequest,
-  DocumentType,
-  DocumentType__1,
+  // Investment types
+  Investment,
+  InvestmentStatus,
+  InvestmentSummary,
   
-  // Verification types
-  VerificationStatus,
-  VerificationTracker,
-  VerificationStep,
+  // Project types
+  ProjectCreateRequest,
+  ProjectUpdateRequest,
   
-  // Stats types
-  FarmerStats,
-  InvestorStats,
-  InvestmentStats,
+  // Purchase types
+  PurchaseRequest,
+  PurchaseResult,
   
-  // Enum types
-  CropType,
-  LandOwnership,
-  AccessRoadCondition,
-  ExperienceLevel,
-  CultivationMethod,
-  HarvestTimeline,
-  MarketDistribution,
-  
-  // Utility types
-  Result,
-  Result_1,
+  // ICP types
+  ICPTransferRequest,
+  TransferResult,
 } from "./declarations/plantify-backend.did";
 
 // UI-specific types for transformed data
 export interface UIProjectData {
-  id: number;
+  id: string;
   title: string;
   location: string;
-  crop: string;
-  area: string;
+  category: string;
+  projectType: string;
   status: string;
   fundingProgress: { current: number; target: number; percentage: number };
   investors: number;
   timeline: string;
-  expectedYield: { amount: number; unit: string };
-  roi: string;
+  expectedROI: string;
+  riskLevel: string;
   lastUpdate: string;
   statusColor: string;
-  verificationStatus?: string;
 }
 
 export interface UIDashboardStats {
@@ -93,5 +68,6 @@ export interface UIDashboardStats {
   activeProjects: number;
   totalFundingRaised: number;
   totalInvestors: number;
-  averageROI: number;
+  totalFounders: number;
+  totalInvestments: number;
 } 
