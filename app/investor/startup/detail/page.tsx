@@ -326,7 +326,9 @@ const Explore = () => {
                         {/* Warning */}
                         <WarningCard
                             title="Investment Risk"
-                            description="Investing in startups is risky. You could lose your entire investment. Only invest what you can afford to lose."
+                            description={[
+                                "Investing in startups is risky. You could lose your entire investment. Only invest what you can afford to lose."
+                            ]}
                         />
                     </div>
                 </div>
