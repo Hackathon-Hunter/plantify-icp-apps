@@ -4,16 +4,18 @@ import { cn } from "@/lib/utils";
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  bgClass?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, leftIcon, rightIcon, ...props }, ref) => {
+  ({ className, type, leftIcon, rightIcon, bgClass = "bg-neutral-800", ...props }, ref) => {
     return (
       <div
         className={cn(
-          "relative flex items-center w-full h-10 bg-neutral-800 px-3 text-base shadow-xs transition-colors",
+          "relative flex items-center w-full h-10 px-3 text-base shadow-xs transition-colors",
           "focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring",
           "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+          bgClass, // pasangkan di sini
           className
         )}
       >
