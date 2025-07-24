@@ -13,6 +13,7 @@ interface CardProductProps extends React.HTMLAttributes<HTMLDivElement> {
     rightBadge?: React.ReactNode;
     raisedAmount?: number;
     goalAmount?: number;
+    handleClick?: () => void;
 }
 
 export const CardProduct: React.FC<CardProductProps> = ({
@@ -27,6 +28,7 @@ export const CardProduct: React.FC<CardProductProps> = ({
     rightBadge,
     raisedAmount = 0,
     goalAmount = 100000,
+    handleClick,
     ...props
 }) => {
     const percentage = Math.min(
@@ -75,7 +77,7 @@ export const CardProduct: React.FC<CardProductProps> = ({
                 </div>
 
                 {buttonText && (
-                    <button className="mt-2 px-4 py-2 bg-white text-black text-sm rounded-md flex items-center gap-2 w-max hover:bg-gray-200">
+                    <button onClick={handleClick} className="mt-2 px-4 py-2 bg-white text-black text-sm rounded-md flex items-center gap-2 w-max hover:bg-gray-200">
                         {iconPosition === "left" && buttonIcon}
                         <span>{buttonText}</span>
                         {iconPosition === "right" && buttonIcon}

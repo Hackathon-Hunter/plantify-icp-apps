@@ -30,6 +30,7 @@ import type { _SERVICE, Project } from "@/service/declarations/plantify-backend.
 import { useAuth } from "@/hooks/useAuth";
 import { ActorSubclass } from "@dfinity/agent";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const Explore = () => {
   const [activeTab, setActiveTab] = useState("All Startups");
@@ -37,6 +38,7 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { actor } = useAuth();
+  const router = useRouter();
   React.useEffect(() => {
     if (!actor) return;
     const fetchProjects = async () => {
@@ -85,7 +87,7 @@ const Explore = () => {
           alt="Explore1"
           height={100}
           width={100}
-          // className="w-full h-auto object-cover"
+        // className="w-full h-auto object-cover"
         />
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -242,6 +244,9 @@ const Explore = () => {
                 })()} />}
                 raisedAmount={Number(item.fundingRaised) / 1e8}
                 goalAmount={Number(item.fundingGoal) / 1e8}
+                handleClick={() => {
+                  router.push(`/investor/startup/detail?id=${item.id}`);
+                }}
               />
             ))}
           </div>
