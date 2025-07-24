@@ -5,11 +5,11 @@ import { Menu, X, LogIn, LogOut } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { isLoggedIn, logout } = useAuth();
+    const { logout, isAuthenticated } = useAuth();
 
     const navigateToLogin = () => {
         window.location.href = '/login';
@@ -38,7 +38,7 @@ const Navbar = () => {
                 </div>
 
                 <div className="hidden md:flex items-center gap-3">
-                    {isLoggedIn ? (
+                    {isAuthenticated ? (
                         <Button
                             iconLeft={<LogOut />}
                             variant="outline"
@@ -78,17 +78,17 @@ const Navbar = () => {
                         <a href="#" className="text-white">Raise Capital</a>
                         <a href="#" className="text-white">Secondary Market</a>
                         <div className="flex flex-col gap-2 pt-4">
-                            {isLoggedIn ? (
-                                <Button 
-                                    variant="outline" 
+                            {isAuthenticated ? (
+                                <Button
+                                    variant="outline"
                                     className="border-white text-white"
                                     onClick={handleLogout}
                                 >
                                     Sign Out
                                 </Button>
                             ) : (
-                                <Button 
-                                    variant="outline" 
+                                <Button
+                                    variant="outline"
                                     className="border-white text-white"
                                     onClick={navigateToLogin}
                                 >
