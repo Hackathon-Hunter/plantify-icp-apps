@@ -17,7 +17,7 @@ const UploadFileButton = React.forwardRef<HTMLInputElement, UploadFileButtonProp
         className={cn(
           "inline-flex items-center justify-center cursor-pointer",
           "bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white",
-          "text-sm px-4 py-4 mt-4 w-fit rounded",
+          "text-sm px-4 py-2 mt-4 w-fit",
           className
         )}
       >
