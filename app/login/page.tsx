@@ -6,37 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/icons';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const LoginPage = () => {
   const router = useRouter();
-  const { login, isLoggedIn, loading } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { login, isAuthenticated, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if user is already authenticated
-    if (isLoggedIn && !loading) {
+    if (isAuthenticated && !isLoading) {
       router.push('/');
     }
-  }, [isLoggedIn, loading, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   const handleIcpLogin = async () => {
-    setIsLoading(true);
     setError(null);
-
     try {
-      const success = await login();
-      if (success) {
-        router.push('/');
-      } else {
-        setError('Login failed. Please try again.');
-      }
+      await login();
+      // Success will be handled by useEffect
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       console.error('Login error:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -80,7 +71,7 @@ const LoginPage = () => {
               {isLoading ? 'Connecting...' : 'Connect with Internet Computer'}
             </Button>
 
-                         <div className="text-center text-gray-500 text-sm">
+            <div className="text-center text-gray-500 text-sm">
               <p>
                 Don&apos;t have an account?{' '}
                 <a
