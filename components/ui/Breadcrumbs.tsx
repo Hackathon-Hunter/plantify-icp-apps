@@ -13,7 +13,7 @@ interface BreadcrumbsProps {
   }[]
 }
 
-export default function Breadcrumbs({ backLabel = "Back", segments }: BreadcrumbsProps) {
+export default function Breadcrumbs({ segments }: BreadcrumbsProps) {
   return (
     <div className="flex items-center gap-2 text-sm">
       <ArrowLeft className="text-gray-400" />

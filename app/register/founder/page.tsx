@@ -1,9 +1,8 @@
 "use client"
 
-import React, { useState } from "react";
+import React from "react";
 
 import Navbar from "@/components/ui/Navbar";
-import Footer from "@/components/ui/Footer";
 import Breadcrumbs from "@/components/ui/Breadcrumbs"
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

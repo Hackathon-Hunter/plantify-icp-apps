@@ -6,7 +6,6 @@ import Image from "next/image"
 
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/ui/Footer";
 import { CardVertical } from "@/components/ui/CardVertical"
@@ -20,8 +19,6 @@ import {
   ChevronDown,
   Search,
   BanknoteArrowUp,
-  Menu,
-  X,
 } from "lucide-react";
 
 const INDUSTRY_PRICING: Record<string, number> = {
@@ -32,7 +29,7 @@ const INDUSTRY_PRICING: Record<string, number> = {
 
 const LandingPage = () => {
   const router = useRouter()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [investment, setInvestment] = useState<number | string>('');
   const [period, setPeriod] = useState(5);
@@ -52,10 +49,9 @@ const LandingPage = () => {
       autoReinvest,
     });
     setProjected(result);
-  }, [investment, period, yieldType, autoReinvest]);
+  }, [investment, period, yieldType, autoReinvest, numericInvestment]);
 
 
-  const navigateToFarmer = () => router.push('farmer/registration');
   const navigateToInvestor = () => router.push('investor/marketplace');
 
   const power = [
@@ -215,7 +211,7 @@ const LandingPage = () => {
               Who Plantify <br /> is Built For
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto md:mx-0">
-              Whether you're building the next big thing or searching for early-stage opportunities,
+              Whether you&apos;re building the next big thing or searching for early-stage opportunities,
               CryptoFund empowers both founders and investors with a transparent, blockchain-driven platform.
             </p>
           </div>

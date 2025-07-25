@@ -8,8 +8,6 @@ import {
     Download,
     CircleCheckBig,
     MoveUpRight,
-    Plus,
-    Minus
 } from "lucide-react";
 
 export default function WalletWithdraw() {

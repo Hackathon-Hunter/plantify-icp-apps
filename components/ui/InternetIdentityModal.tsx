@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { X, Fingerprint, Zap, Globe, KeyRound, Ban } from 'lucide-react';
 
 interface FeatureItem {
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   text: string;
   iconColor?: string;
 }
@@ -22,7 +22,7 @@ interface ButtonConfig {
   text: string;
   onClick: () => void;
   variant?: 'primary' | 'secondary';
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
   disabled?: boolean;
 }
 
@@ -275,16 +275,16 @@ const InternetIdentityModal: React.FC<InternetIdentityModalProps> = ({
         <h3 className="text-xl sm:text-2xl text-white font-semibold">How Internet Identity Works</h3>
         <div className="flex flex-col gap-2 sm:gap-3">
           <div className="text-sm sm:text-base text-white leading-relaxed">
-            <span className="font-medium">1.</span> You'll be redirected to the Internet Identity service
+            <span className="font-medium">1.</span> You&apos;ll be redirected to the Internet Identity service
           </div>
           <div className="text-sm sm:text-base text-white leading-relaxed">
             <span className="font-medium">2.</span> Authenticate using your registered device (biometrics, security key, etc.)
           </div>
           <div className="text-sm sm:text-base text-white leading-relaxed">
-            <span className="font-medium">3.</span> You'll receive a unique pseudonymous identity for this application
+            <span className="font-medium">3.</span> You&apos;ll receive a unique pseudonymous identity for this application
           </div>
           <div className="text-sm sm:text-base text-white leading-relaxed">
-            <span className="font-medium">4.</span> You'll be redirected back to continue your session
+            <span className="font-medium">4.</span> You&apos;ll be redirected back to continue your session
           </div>
         </div>
       </div>

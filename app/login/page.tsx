@@ -45,9 +45,9 @@ const LoginPage = () => {
             <div className="w-12 h-12 bg-black rounded flex items-center justify-center mb-4">
               <Logo />
             </div>
-            <h1 className="text-2xl font-bold">Sign In to Plantify</h1>
+            <h1 className="text-2xl font-bold text-black">Sign In to Plantify</h1>
             <p className="text-gray-500 mt-2 text-center">
-              Connect with Internet Computer to access your account
+              Connect with Internet Identity to access your account
             </p>
           </div>
 
@@ -68,7 +68,7 @@ const LoginPage = () => {
               ) : (
                 <ShieldCheck className="h-5 w-5" />
               )}
-              {isLoading ? 'Connecting...' : 'Connect with Internet Computer'}
+              {isLoading ? 'Connecting...' : 'Connect with Internet Identity'}
             </Button>
 
             <div className="text-center text-gray-500 text-sm">

@@ -6,7 +6,6 @@ import Navbar from "@/components/ui/Navbar";
 import Footer from "@/components/ui/Footer";
 import { CardHorizontal } from "@/components/ui/CardHorizontal"
 import { CardProduct } from "@/components/ui/CardProduct"
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BadgeWarning from "@/components/ui/BadgeWarning";
@@ -15,13 +14,8 @@ import Tabs from "@/components/ui/Tabs";
 
 import {
   Search,
-  Filter,
-  Heart,
   MapPin,
-  TrendingUp,
-  DollarSign,
   Clock,
-  Sprout,
   Settings2,
   UsersRound
 } from "lucide-react";

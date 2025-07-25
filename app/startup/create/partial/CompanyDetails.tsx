@@ -271,7 +271,7 @@ export default function CompanyDetails({ nextStep, prevStep, formData, updateFor
                                             <Input
                                                 type="date"
                                                 bgClass="bg-neutral-800 text-white"
-                                                value={formatDateForInput(milestone.completedDate)}
+                                                // value={formatDateForInput(milestone.completedDate)}
                                                 onChange={(e) => {
                                                     const date = e.target.value ? new Date(e.target.value) : undefined;
                                                     handleMilestoneChange(index, 'completedDate', date);

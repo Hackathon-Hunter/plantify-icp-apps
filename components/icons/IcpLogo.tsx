@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface IcpLogoProps extends React.SVGProps<SVGSVGElement> { }
+type IcpLogoProps = React.SVGProps<SVGSVGElement>
 
 const IcpLogo: React.FC<IcpLogoProps> = (props) => {
     return (
