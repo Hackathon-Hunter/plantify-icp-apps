@@ -719,6 +719,7 @@ export const getMyInvestmentSummaries = async (
 ): Promise<InvestmentSummary[]> => {
   try {
     const result = await actor.getMyInvestmentSummaries();
+    console.log("result", result);
     return result;
   } catch (error) {
     console.error("Error fetching my investment summaries:", error);

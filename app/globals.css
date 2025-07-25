@@ -91,3 +91,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(90deg, #1f1f1f 0%, #333333 50%, #1f1f1f 100%);
+  background-size: 200% 100%;
+}
