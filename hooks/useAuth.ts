@@ -1,10 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { Actor, ActorSubclass, HttpAgent } from "@dfinity/agent";
-import { _SERVICE, idlFactory } from "@/service/declarations/plantify-backend.did";
+import { ActorSubclass } from "@dfinity/agent";
+import {
+  _SERVICE,
+} from "@/service/declarations/plantify-backend.did";
+import { createActor } from "@/service/declarations";
 
 const identityProvider = "https://identity.ic0.app";
 const canisterId = "a5ptu-ryaaa-aaaai-q32cq-cai";
+const host = "https://ic0.app";
 
 type AuthState = {
   actor: ActorSubclass<_SERVICE> | undefined;
@@ -25,21 +29,19 @@ export const useAuth = () => {
 
   const updateActor = useCallback(async () => {
     // Only run on client side
-    if (typeof window === 'undefined') return;
-    
+    if (typeof window === "undefined") return;
+
     try {
       const authClient = await AuthClient.create();
       const identity = authClient.getIdentity();
 
-      const agent = new HttpAgent({ identity, host: "https://ic0.app/" });
+      const actor = createActor(canisterId, {
+        agentOptions: {
+          identity,
+          host
+        },
+      });
 
-      const actor: ActorSubclass<_SERVICE> = Actor.createActor<_SERVICE>(
-        idlFactory,
-        {
-          canisterId,
-          agent,
-        }
-      );
       const isAuthenticated = await authClient.isAuthenticated();
 
       setState((prev) => ({
@@ -57,11 +59,11 @@ export const useAuth = () => {
 
   const initializeAuth = useCallback(async () => {
     // Only run on client side
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       setState((prev) => ({ ...prev, isLoading: false }));
       return;
     }
-    
+
     try {
       setState((prev) => ({ ...prev, isLoading: true }));
       await updateActor();
@@ -78,8 +80,8 @@ export const useAuth = () => {
 
   const login = async () => {
     // Only run on client side
-    if (typeof window === 'undefined') return;
-    
+    if (typeof window === "undefined") return;
+
     try {
       if (!state.authClient) {
         throw new Error("Auth client not initialized");
@@ -100,8 +102,8 @@ export const useAuth = () => {
 
   const logout = async () => {
     // Only run on client side
-    if (typeof window === 'undefined') return;
-    
+    if (typeof window === "undefined") return;
+
     try {
       if (!state.authClient) {
         throw new Error("Auth client not initialized");

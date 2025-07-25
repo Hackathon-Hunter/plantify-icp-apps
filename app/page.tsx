@@ -52,7 +52,7 @@ const LandingPage = () => {
   }, [investment, period, yieldType, autoReinvest, numericInvestment]);
 
 
-  const navigateToInvestor = () => router.push('investor/marketplace');
+  const navigateToInvestor = () => router.push('investor/explore');
 
   const power = [
     {

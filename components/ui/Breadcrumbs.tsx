@@ -1,21 +1,31 @@
-"use client"
+"use client";
 
-import React from "react"
-import { ArrowLeft } from "lucide-react"
+import React from "react";
+import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface BreadcrumbsProps {
-  backLink?: string
-  backLabel?: string
+  backLink?: string;
+  goBack?: boolean;
+  backLabel?: string;
   segments: {
-    label: string
-    href?: string
-    active?: boolean
-  }[]
+    label: string;
+    href?: string;
+    active?: boolean;
+  }[];
 }
 
-export default function Breadcrumbs({ segments }: BreadcrumbsProps) {
+export default function Breadcrumbs({
+  goBack = true,
+  segments,
+}: BreadcrumbsProps) {
+  const router = useRouter();
+
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <button
+      className="flex items-center gap-2 text-sm"
+      onClick={() => goBack && router.back()}
+    >
       <ArrowLeft className="text-gray-400" />
       {segments.map((seg, i) => (
         <div key={i} className="flex items-center gap-2">
@@ -31,6 +41,6 @@ export default function Breadcrumbs({ segments }: BreadcrumbsProps) {
           {i < segments.length - 1 && <span className="text-gray-400">/</span>}
         </div>
       ))}
-    </div>
-  )
+    </button>
+  );
 }
