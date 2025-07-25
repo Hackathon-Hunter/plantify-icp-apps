@@ -75,7 +75,7 @@ const LoginPage = () => {
               <p>
                 Don&apos;t have an account?{' '}
                 <a
-                  href="/investor/registration"
+                  href="/register/investor"
                   className="text-black font-medium hover:underline"
                 >
                   Register as Investor
@@ -83,10 +83,10 @@ const LoginPage = () => {
               </p>
               <p className="mt-1">
                 <a
-                  href="/farmer/registration"
+                  href="/register/founder"
                   className="text-black font-medium hover:underline"
                 >
-                  Register as Farmer
+                  Register as Founder
                 </a>
               </p>
             </div>
