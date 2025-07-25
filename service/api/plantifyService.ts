@@ -25,6 +25,8 @@ import {
   PurchaseRequest,
   PurchaseResult,
   TransferResult,
+  Industry,
+  ProjectType,
 } from "../declarations/plantify-backend.did";
 
 // =============================================
@@ -292,11 +294,116 @@ export const getInvestorCount = async (
 // PROJECT MANAGEMENT
 // =============================================
 
+// Type for form data needed to create a project
+export interface ProjectFormDataType {
+  companyName: string;
+  industry: Industry | null;
+  projectType: ProjectType | null;
+  companyTagline: string;
+  location: string;
+  website?: string;
+  problem: string;
+  solution: string;
+  marketOpportunity: string;
+  fundingGoal: number;
+  companyValuation: number;
+  minInvestment: number;
+  maxInvestment?: number;
+  expectedROI: string;
+  riskLevel: string;
+  timeline: string;
+  useOfFunds: Array<{
+    category: string;
+    amount: number;
+    percentage: number;
+    description: string;
+  }>;
+  teamMembers: Array<{
+    name: string;
+    role: string;
+    bio?: string;
+    imageUrl?: string;
+    linkedinUrl?: string;
+  }>;
+  milestones: Array<{
+    title: string;
+    description: string;
+    fundingRequired: number;
+    targetDate?: Date;
+    completed: boolean;
+  }>;
+  productImages: string[];
+  companyLogo?: string;
+  pitchDeckUrl?: string;
+  demoVideoUrl?: string;
+  tags: string[];
+  minimumFunding: number;
+}
+
+// Helper function to safely handle conversion
+const createDefaultIndustry = (): Industry => ({ Other: null });
+const createDefaultProjectType = (): ProjectType => ({ Other: null });
+
+// Utility to convert form data to ProjectCreateRequest
+export const createProjectRequestFromForm = (formData: ProjectFormDataType): ProjectCreateRequest => {
+  console.log("Converting form data to project request:", formData);
+  
+  return {
+    companyName: formData.companyName || "",
+    industry: formData.industry || createDefaultIndustry(),
+    projectType: formData.projectType || createDefaultProjectType(),
+    companyTagline: formData.companyTagline || "",
+    location: formData.location || "",
+    website: formData.website && formData.website.trim() !== '' ? [formData.website] : [],
+    problem: formData.problem || "",
+    solution: formData.solution || "",
+    marketOpportunity: formData.marketOpportunity || "",
+    fundingGoal: BigInt(formData.fundingGoal || 0),
+    companyValuation: BigInt(formData.companyValuation || 0),
+    minInvestment: BigInt(formData.minInvestment || 0),
+    maxInvestment: formData.maxInvestment ? [BigInt(formData.maxInvestment)] : [],
+    expectedROI: formData.expectedROI || "",
+    riskLevel: formData.riskLevel || "Medium",
+    timeline: formData.timeline || "",
+    useOfFunds: (formData.useOfFunds || []).map(item => ({
+      category: item.category || "",
+      amount: BigInt(item.amount || 0),
+      percentage: item.percentage || 0,
+      description: item.description || ""
+    })),
+    teamMembers: (formData.teamMembers || []).map(member => ({
+      name: member.name || "",
+      role: member.role || "",
+      bio: member.bio && member.bio.trim() !== '' ? [member.bio] : [],
+      imageUrl: member.imageUrl && member.imageUrl.trim() !== '' ? [member.imageUrl] : [],
+      linkedinUrl: member.linkedinUrl && member.linkedinUrl.trim() !== '' ? [member.linkedinUrl] : []
+    })),
+    milestones: (formData.milestones || []).map(milestone => ({
+      title: milestone.title || "",
+      description: milestone.description || "",
+      fundingRequired: BigInt(milestone.fundingRequired || 0),
+      targetDate: milestone.targetDate ? [BigInt(milestone.targetDate.getTime())] : [],
+      completed: milestone.completed || false,
+      completedDate: []
+    })),
+    productImages: formData.productImages || [],
+    companyLogo: formData.companyLogo && formData.companyLogo.trim() !== '' ? [formData.companyLogo] : [],
+    pitchDeckUrl: formData.pitchDeckUrl && formData.pitchDeckUrl.trim() !== '' ? [formData.pitchDeckUrl] : [],
+    demoVideoUrl: formData.demoVideoUrl && formData.demoVideoUrl.trim() !== '' ? [formData.demoVideoUrl] : [],
+    tags: formData.tags || [],
+    minimumFunding: BigInt(formData.minimumFunding || 0),
+    jurisdiction: [],
+    legalStructure: [],
+    targetDate: []
+  };
+};
+
 // Create a new project
 export const createProject = async (
   actor: ActorSubclass<_SERVICE>,
   args: ProjectCreateRequest
 ): Promise<ProjectResult> => {
+  console.log("Creating project:", args);
   try {
     const result = await actor.createProject(args);
     return result;
