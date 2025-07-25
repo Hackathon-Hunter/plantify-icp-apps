@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, ReactElement } from "react";
+import React, { useState, ReactElement, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Industry, ProjectType } from "@/service/declarations/plantify-backend.did";
 
 interface Step {
     id: number;
@@ -11,24 +12,133 @@ interface Step {
 
 interface MultiStepFormProps {
     steps: Step[];
+    onSubmit?: (formData: ProjectFormData) => void;
 }
 
-export default function MultiStepForm({ steps }: MultiStepFormProps) {
+export interface ProjectFormData {
+    companyName: string;
+    industry: Industry | null;
+    projectType: ProjectType | null;
+    companyTagline: string;
+    location: string;
+    website?: string;
+    problem: string;
+    solution: string;
+    marketOpportunity: string;
+    fundingGoal: number;
+    companyValuation: number;
+    minInvestment: number;
+    maxInvestment?: number;
+    expectedROI: string;
+    riskLevel: string;
+    timeline: string;
+    useOfFunds: Array<{
+        category: string;
+        amount: number;
+        percentage: number;
+        description: string;
+    }>;
+    teamMembers: Array<{
+        name: string;
+        role: string;
+        bio?: string;
+        imageUrl?: string;
+        linkedinUrl?: string;
+    }>;
+    milestones: Array<{
+        title: string;
+        description: string;
+        fundingRequired: number;
+        targetDate?: Date;
+        completed: boolean;
+    }>;
+    productImages: string[];
+    companyLogo?: string;
+    pitchDeckUrl?: string;
+    demoVideoUrl?: string;
+    tags: string[];
+    minimumFunding: number;
+}
+
+// Define step component props to fix type issue
+export interface StepComponentProps {
+    nextStep?: () => void;
+    prevStep?: () => void;
+    formData?: ProjectFormData;
+    updateFormData?: (data: Partial<ProjectFormData>) => void;
+    handleSubmit?: () => void;
+}
+
+export default function MultiStepForm({ steps, onSubmit }: MultiStepFormProps) {
     const [currentStep, setCurrentStep] = useState(0);
+    const [formData, setFormData] = useState<ProjectFormData>({
+        companyName: '',
+        industry: null,
+        companyTagline: '',
+        location: '',
+        website: '',
+        problem: '',
+        solution: '',
+        marketOpportunity: '',
+        fundingGoal: 0,
+        companyValuation: 0,
+        minInvestment: 0,
+        expectedROI: '',
+        riskLevel: 'Medium',
+        timeline: '',
+        projectType: null,
+        useOfFunds: [],
+        teamMembers: [],
+        milestones: [],
+        productImages: [],
+        tags: [],
+        minimumFunding: 0
+    });
+
+    // Debug logging to track step changes and data updates
+    useEffect(() => {
+        console.log(`Current step: ${currentStep}, Step name: ${steps[currentStep].label}`);
+        console.log("Current form data:", formData);
+    }, [currentStep, formData, steps]);
 
     const nextStep = () => {
+        console.log("Moving to next step with data:", formData);
         if (currentStep < steps.length - 1) {
             setCurrentStep((prev) => prev + 1);
         }
     };
 
     const prevStep = () => {
+        console.log("Moving to previous step with data:", formData);
         if (currentStep > 0) {
             setCurrentStep((prev) => prev - 1);
         }
     };
 
-    const StepComponent = steps[currentStep].component;
+    const handleSubmit = () => {
+        console.log("Submitting form with data:", formData);
+        if (onSubmit) {
+            onSubmit(formData);
+        }
+    };
+
+    const updateFormData = (data: Partial<ProjectFormData>) => {
+        console.log("Updating form data:", data);
+        setFormData(prev => ({ ...prev, ...data }));
+    };
+
+    const renderCurrentStep = () => {
+        const StepComponent = steps[currentStep].component;
+        const props: StepComponentProps = {
+            nextStep,
+            prevStep,
+            formData,
+            updateFormData,
+            handleSubmit: currentStep === steps.length - 1 ? handleSubmit : undefined
+        };
+        
+        return React.cloneElement(StepComponent, props);
+    };
 
     return (
         <div className="w-full flex flex-col gap-6">
@@ -52,7 +162,7 @@ export default function MultiStepForm({ steps }: MultiStepFormProps) {
             </div>
 
             <div>
-                {React.cloneElement(StepComponent, { nextStep, prevStep })}
+                {renderCurrentStep()}
             </div>
         </div>
     );
