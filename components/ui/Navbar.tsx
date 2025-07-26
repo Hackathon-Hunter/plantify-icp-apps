@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
+import { getMyICPBalance } from "@/service/api/plantifyService";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,7 +45,7 @@ const Navbar = () => {
 
       setLoadingBalance(true);
       try {
-        const balanceResult = await actor.getMyICPBalance();
+        const balanceResult = await getMyICPBalance(actor);
         if ("ok" in balanceResult) {
           const balance = Number(balanceResult.ok) / 100_000_000;
           setIcpBalance(balance.toFixed(2));
