@@ -37,6 +37,14 @@ const LandingPage = () => {
   const [autoReinvest, setAutoReinvest] = useState(false);
   const [plan, setPlan] = useState<'one-time' | 'monthly'>('one-time');
   const [projected, setProjected] = useState({ totalReturn: '0', totalAsset: '0' });
+  const [value, setValue] = useState(30);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value);
+    setValue(newValue);
+    const percentage = (newValue / 100) * 100;
+    e.target.style.background = `linear-gradient(to right, white ${percentage}%, #262626 ${percentage}%)`;
+  };
 
   const pricePerNFT = INDUSTRY_PRICING[selectedIndustry] || 1;
   const numericInvestment = typeof investment === 'string' ? parseFloat(investment) || 0 : investment;
@@ -346,16 +354,40 @@ const LandingPage = () => {
               />
             </div>
 
-            <div>
-              <label className="text-sm mb-2 block">Period ({period} year)</label>
+            <div className="bg-neutral-900 text-white w-full max-w-lg">
+              <label className="block mb-2">Period ({value} year)</label>
               <input
                 type="range"
-                min={1}
-                max={10}
-                value={period}
-                onChange={(e) => setPeriod(Number(e.target.value))}
-                className="w-full"
+                min="0"
+                max="100"
+                value={value}
+                onChange={handleSliderChange}
+                className="w-full h-2 appearance-none outline-none"
+                style={{
+                  background: `linear-gradient(to right, white ${value}%, #262626 ${value}%)`,
+                }}
               />
+              <style jsx>{`
+        input[type='range']::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 16px;
+          width: 16px;
+          background-color: #fff;
+          border-radius: 0%;
+          cursor: pointer;
+          border: 2px solid white;
+        }
+
+        input[type='range']::-moz-range-thumb {
+          height: 16px;
+          width: 16px;
+          background-color: #262626;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 2px solid white;
+        }
+      `}</style>
             </div>
 
             <div className="border border-dashed border-neutral-500" />
