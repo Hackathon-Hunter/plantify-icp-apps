@@ -11,9 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import InternetIdentityModal from "@/components/ui/InternetIdentityModal";
 
-import { ArrowRight, CheckCircle, Wallet, Loader2 } from "lucide-react";
-import { registerFounder } from "@/service/api/plantifyService";
+import {
+  ArrowRight,
+  CheckCircle,
+  Wallet,
+  Loader2,
+  UserCheck,
+} from "lucide-react";
+import {
+  registerFounder,
+  getMyFounderProfile,
+} from "@/service/api/plantifyService";
 import { useAuth } from "@/hooks/useAuth";
+import type { Founder } from "@/service/declarations/plantify-backend.did";
 
 interface FounderFormValues {
   fullName: string;
@@ -116,8 +126,33 @@ export default function RegisterFounder(): JSX.Element {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [existingFounder, setExistingFounder] = useState<Founder | null>(null);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
 
-  useEffect(() => {}, [isAuthenticated, actor]);
+  useEffect(() => {
+    const checkExistingProfile = async () => {
+      if (!isAuthenticated || !actor) return;
+
+      setIsCheckingProfile(true);
+      try {
+        const profile = await getMyFounderProfile(actor);
+
+        if (profile) {
+          setExistingFounder(profile);
+        } else {
+          setExistingFounder(null);
+        }
+      } catch (error) {
+        console.error("❌ Error checking founder profile:", error);
+
+        setExistingFounder(null);
+      } finally {
+        setIsCheckingProfile(false);
+      }
+    };
+
+    checkExistingProfile();
+  }, [isAuthenticated, actor]);
 
   const handleWalletConnection = async (): Promise<boolean> => {
     if (isAuthenticated && actor) {
@@ -131,6 +166,7 @@ export default function RegisterFounder(): JSX.Element {
       await login();
 
       setIsModalOpen(false);
+
       return true;
     } catch (error) {
       console.error("❌ Wallet connection failed:", error);
@@ -153,6 +189,13 @@ export default function RegisterFounder(): JSX.Element {
       };
     }
 
+    if (existingFounder) {
+      return {
+        success: false,
+        message: `You are already registered as a founder with the name "${existingFounder.fullName}". You can proceed to your dashboard.`,
+      };
+    }
+
     try {
       const founderRequest = {
         fullName: values.fullName,
@@ -164,6 +207,7 @@ export default function RegisterFounder(): JSX.Element {
       const result = await registerFounder(actor, founderRequest);
 
       if ("ok" in result) {
+        setExistingFounder(result.ok);
         return { success: true, message: "Registration successful!" };
       } else {
         console.error("❌ Founder registration failed:", result.err);
@@ -217,6 +261,8 @@ export default function RegisterFounder(): JSX.Element {
   const handleConnectAndSubmit = async (formikSubmit: () => void) => {
     if (!isAuthenticated || !actor) {
       setIsModalOpen(true);
+    } else if (existingFounder) {
+      router.push("/startup/dashboard");
     } else {
       formikSubmit();
     }
@@ -246,18 +292,44 @@ export default function RegisterFounder(): JSX.Element {
             handleSubmit: formikHandleSubmit,
           }) => (
             <div className="bg-neutral-800 p-4 flex flex-col gap-3">
+              {/* Loading Profile Check */}
+              {isCheckingProfile && (
+                <div className="p-3 rounded text-sm flex items-center gap-2 bg-neutral-700 text-neutral-300 border border-neutral-600">
+                  <Loader2
+                    size={16}
+                    className="animate-spin text-neutral-300"
+                  />
+                  <span>Checking your profile...</span>
+                </div>
+              )}
+
+              {/* Existing Founder Alert */}
+              {existingFounder && !isCheckingProfile && (
+                <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
+                  <UserCheck size={16} className="text-green-400" />
+                  <div className="flex flex-col">
+                    <span>Welcome back, {existingFounder.fullName}!</span>
+                    <span className="text-green-300 text-xs">
+                      You are already registered as a founder.
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Connection Status */}
               {!isAuthenticated && (
                 <div className="p-3 rounded text-sm flex items-center gap-2 bg-blue-900/50 text-blue-400 border border-blue-700">
                   <Wallet size={16} className="text-blue-400" />
-                  <span>Connect your wallet to complete registration</span>
+                  <span>
+                    Connect your wallet to check your registration status
+                  </span>
                 </div>
               )}
 
-              {isAuthenticated && (
+              {isAuthenticated && !existingFounder && !isCheckingProfile && (
                 <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
                   <CheckCircle size={16} className="text-green-400" />
-                  <span>Wallet connected successfully</span>
+                  <span>Wallet connected successfully - Ready to register</span>
                 </div>
               )}
 
@@ -289,51 +361,113 @@ export default function RegisterFounder(): JSX.Element {
                 </div>
               )}
 
-              {/* Full Name Field */}
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-white">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <FormInput
-                  name="fullName"
-                  placeholder="Enter your full name here"
-                />
-              </div>
+              {/* Form Fields - Hidden if already registered */}
+              {!existingFounder && (
+                <>
+                  {/* Full Name Field */}
+                  <div className="flex flex-col gap-2 w-full">
+                    <label className="text-white">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <FormInput
+                      name="fullName"
+                      placeholder="Enter your full name here"
+                    />
+                  </div>
 
-              {/* Email Field */}
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-white">
-                  Email <span className="text-red-500">*</span>
-                </label>
-                <FormInput
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email here"
-                />
-              </div>
+                  {/* Email Field */}
+                  <div className="flex flex-col gap-2 w-full">
+                    <label className="text-white">
+                      Email <span className="text-red-500">*</span>
+                    </label>
+                    <FormInput
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email here"
+                    />
+                  </div>
 
-              {/* ID Number Field */}
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-white">
-                  ID Number <span className="text-red-500">*</span>
-                </label>
-                <FormInput
-                  name="idNumber"
-                  placeholder="Enter your ID number here"
-                />
-              </div>
+                  {/* ID Number Field */}
+                  <div className="flex flex-col gap-2 w-full">
+                    <label className="text-white">
+                      ID Number <span className="text-red-500">*</span>
+                    </label>
+                    <FormInput
+                      name="idNumber"
+                      placeholder="Enter your ID number here"
+                    />
+                  </div>
 
-              {/* Phone Number Field */}
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-white">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <FormInput
-                  name="phoneNumber"
-                  type="tel"
-                  placeholder="Enter your phone number here"
-                />
-              </div>
+                  {/* Phone Number Field */}
+                  <div className="flex flex-col gap-2 w-full">
+                    <label className="text-white">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <FormInput
+                      name="phoneNumber"
+                      type="tel"
+                      placeholder="Enter your phone number here"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Existing Founder Info Display */}
+              {existingFounder && (
+                <div className="bg-neutral-700 p-4 rounded">
+                  <h3 className="text-white text-lg font-semibold mb-3">
+                    Your Founder Profile
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Name:</span>
+                      <span className="text-white">
+                        {existingFounder.fullName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Email:</span>
+                      <span className="text-white">
+                        {existingFounder.email}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Phone:</span>
+                      <span className="text-white">
+                        {existingFounder.phoneNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Government ID:</span>
+                      <span className="text-white">
+                        {existingFounder.governmentId}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Registered:</span>
+                      <span className="text-white">
+                        {new Date(
+                          Number(existingFounder.registrationDate)
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-400">Status:</span>
+                      <span
+                        className={
+                          existingFounder.isVerified
+                            ? "text-green-400"
+                            : "text-yellow-400"
+                        }
+                      >
+                        {existingFounder.isVerified
+                          ? "Verified"
+                          : "Pending Verification"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="border border-dashed border-neutral-500"></div>
 
@@ -344,11 +478,14 @@ export default function RegisterFounder(): JSX.Element {
                   disabled={
                     isSubmitting ||
                     isConnecting ||
+                    isCheckingProfile ||
                     (status as FormStatus)?.type === "success"
                   }
                   iconRight={
-                    isConnecting ? (
+                    isConnecting || isCheckingProfile ? (
                       <Loader2 className="animate-spin" size={16} />
+                    ) : existingFounder ? (
+                      <ArrowRight />
                     ) : (
                       <ArrowRight />
                     )
@@ -356,41 +493,62 @@ export default function RegisterFounder(): JSX.Element {
                   iconLeft={
                     !isAuthenticated && !isConnecting ? (
                       <Wallet size={16} />
+                    ) : existingFounder ? (
+                      <UserCheck size={16} />
                     ) : undefined
                   }
                   size="lg"
                   className={`text-sm px-4 py-4 w-fit transition-all duration-200 ${
                     isSubmitting ||
                     isConnecting ||
+                    isCheckingProfile ||
                     (status as FormStatus)?.type === "success"
                       ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                       : "bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white"
                   }`}
                 >
-                  {isConnecting
+                  {isCheckingProfile
+                    ? "Checking Profile..."
+                    : isConnecting
                     ? "Connecting Wallet..."
                     : isSubmitting
                     ? "Signing Up..."
                     : (status as FormStatus)?.type === "success"
                     ? "Redirecting..."
+                    : existingFounder
+                    ? "Go to Dashboard"
                     : !isAuthenticated
                     ? "Connect Wallet & Sign Up"
                     : "Sign Up"}
                 </Button>
               </div>
 
-              {/* Alternative: Manual Dashboard Navigation */}
-              {(status as FormStatus)?.type === "success" && (
+              {/* Alternative: Manual Dashboard Navigation for existing founders */}
+              {existingFounder && (
                 <div className="flex justify-center">
                   <Button
                     onClick={() => router.push("/startup/dashboard")}
                     variant="outline"
                     className="text-green-400 border-green-400 hover:bg-green-900/20 text-sm"
                   >
-                    Go to Dashboard Now
+                    Continue to Startup Dashboard
                   </Button>
                 </div>
               )}
+
+              {/* Alternative: Manual Dashboard Navigation */}
+              {(status as FormStatus)?.type === "success" &&
+                !existingFounder && (
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={() => router.push("/startup/dashboard")}
+                      variant="outline"
+                      className="text-green-400 border-green-400 hover:bg-green-900/20 text-sm"
+                    >
+                      Go to Dashboard Now
+                    </Button>
+                  </div>
+                )}
 
               {/* Form Summary for Development */}
               {process.env.NODE_ENV === "development" && (
@@ -407,6 +565,10 @@ export default function RegisterFounder(): JSX.Element {
                       </p>
                       <p>Is Submitting: {isSubmitting.toString()}</p>
                       <p>Status: {JSON.stringify(status, null, 2)}</p>
+                      <p>
+                        Existing Founder:{" "}
+                        {JSON.stringify(existingFounder, null, 2)}
+                      </p>
                     </div>
                   </details>
                 </div>
