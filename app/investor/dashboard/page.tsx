@@ -35,6 +35,7 @@ import {
 } from "@/service/declarations/plantify-backend.did";
 import { ActorSubclass } from "@dfinity/agent";
 import { useRouter } from "next/navigation";
+import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 // Shimmer loading component
 const ShimmerLoader = ({ className = "" }: { className?: string }) => (
@@ -326,131 +327,136 @@ export default function DashboardInvestor() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <div className="fixed inset-0 z-0">
+        <DarkVeil />
+      </div>
 
-      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
-        <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+      <div className="relative z-10">
+        <Navbar />
 
-        <div className="flex flex-col gap-2">
-          <h2 className="text-white text-4xl">Investor Dashboard</h2>
-          <span className="text-neutral-500">
-            Track and manage your startup investments
-          </span>
-          {investorProfile && (
-            <span className="text-neutral-400 text-sm">
-              Welcome back, {investorProfile.fullName}
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
+          <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+
+          <div className="flex flex-col gap-2">
+            <h2 className="text-white text-4xl">Investor Dashboard</h2>
+            <span className="text-white">
+              Track and manage your startup investments
             </span>
+            {investorProfile && (
+              <span className="text-white text-sm">
+                Welcome back, {investorProfile.fullName}
+              </span>
+            )}
+          </div>
+
+          {/* Check if user is registered */}
+          {isRegistered === false ? (
+            <NotRegistered />
+          ) : isLoading ? (
+            <>
+              {renderShimmerStats()}
+              <div className="border-t border-dashed border-gray-700 my-4"></div>
+              <div className="animate-pulse">
+                <div className="h-10 bg-neutral-800 rounded w-full max-w-md mb-6"></div>
+              </div>
+              {renderShimmerActivity()}
+            </>
+          ) : error ? (
+            <ErrorDisplay message={error} onRetry={handleRetry} />
+          ) : investmentSummaries.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <>
+              {/* Dashboard Statistics */}
+              <div className="flex flex-col gap-4 md:flex-row">
+                <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
+                  <div className="flex flex-col gap-3">
+                    <span className="text-white text-xl">Total Invested</span>
+                    <span className="text-white text-2xl font-bold">
+                      ${totalInvested.toFixed(2)}
+                    </span>
+                    <span className="text-white text-sm">
+                      Across {startupsBacked} project
+                      {startupsBacked !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div>
+                    <BanknoteArrowUp className="text-white" />
+                  </div>
+                </div>
+
+                <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
+                  <div className="flex flex-col gap-3">
+                    <span className="text-white text-xl">Startups Backed</span>
+                    <span className="text-white text-2xl font-bold">
+                      {startupsBacked}
+                    </span>
+                    <span className="text-white text-sm">
+                      {investments.length} investment
+                      {investments.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div>
+                    <ChartPie className="text-white" />
+                  </div>
+                </div>
+
+                <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
+                  <div className="flex flex-col gap-3">
+                    <span className="text-white text-xl">Portfolio Value</span>
+                    <span className="text-white text-2xl font-bold">
+                      ${portfolioValue.toFixed(2)}
+                    </span>
+                    <span className="text-white text-sm">
+                      <span
+                        className={
+                          portfolioReturn >= 0 ? "text-green-500" : "text-red-500"
+                        }
+                      >
+                        {portfolioReturn >= 0 ? "+" : ""}
+                        {portfolioReturn.toFixed(1)}%
+                      </span>{" "}
+                      Total return
+                    </span>
+                  </div>
+                  <div>
+                    <TrendingUp className="text-white" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-dashed border-gray-700 my-4"></div>
+
+              <Tabs
+                tabs={tabs.map((c) => ({ label: c, value: c }))}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+
+              <div className="mt-6">
+                {activeTab === "Active Investments" && (
+                  <SubmitForReview
+                    investments={investments}
+                  //   investmentSummaries={investmentSummaries}
+                  //   onRefresh={fetchInvestmentData}
+                  />
+                )}
+
+                {activeTab === "Failed Startup" && <FailedCampaign />}
+
+                {activeTab === "Wallet Withdraw" && <WalletWithdraw />}
+
+                {activeTab === "Activity Feed" && (
+                  <ActivityFeed
+                    investments={investments}
+                  //   onRefresh={fetchInvestmentData}
+                  />
+                )}
+              </div>
+            </>
           )}
-        </div>
-
-        {/* Check if user is registered */}
-        {isRegistered === false ? (
-          <NotRegistered />
-        ) : isLoading ? (
-          <>
-            {renderShimmerStats()}
-            <div className="border-t border-dashed border-gray-700 my-4"></div>
-            <div className="animate-pulse">
-              <div className="h-10 bg-neutral-800 rounded w-full max-w-md mb-6"></div>
-            </div>
-            {renderShimmerActivity()}
-          </>
-        ) : error ? (
-          <ErrorDisplay message={error} onRetry={handleRetry} />
-        ) : investmentSummaries.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <>
-            {/* Dashboard Statistics */}
-            <div className="flex flex-col gap-4 md:flex-row">
-              <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
-                <div className="flex flex-col gap-3">
-                  <span className="text-white text-xl">Total Invested</span>
-                  <span className="text-white text-2xl font-bold">
-                    ${totalInvested.toFixed(2)}
-                  </span>
-                  <span className="text-white text-sm">
-                    Across {startupsBacked} project
-                    {startupsBacked !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <div>
-                  <BanknoteArrowUp className="text-white" />
-                </div>
-              </div>
-
-              <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
-                <div className="flex flex-col gap-3">
-                  <span className="text-white text-xl">Startups Backed</span>
-                  <span className="text-white text-2xl font-bold">
-                    {startupsBacked}
-                  </span>
-                  <span className="text-white text-sm">
-                    {investments.length} investment
-                    {investments.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-                <div>
-                  <ChartPie className="text-white" />
-                </div>
-              </div>
-
-              <div className="bg-neutral-800 p-4 flex justify-between w-full rounded-lg">
-                <div className="flex flex-col gap-3">
-                  <span className="text-white text-xl">Portfolio Value</span>
-                  <span className="text-white text-2xl font-bold">
-                    ${portfolioValue.toFixed(2)}
-                  </span>
-                  <span className="text-white text-sm">
-                    <span
-                      className={
-                        portfolioReturn >= 0 ? "text-green-500" : "text-red-500"
-                      }
-                    >
-                      {portfolioReturn >= 0 ? "+" : ""}
-                      {portfolioReturn.toFixed(1)}%
-                    </span>{" "}
-                    Total return
-                  </span>
-                </div>
-                <div>
-                  <TrendingUp className="text-white" />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-dashed border-gray-700 my-4"></div>
-
-            <Tabs
-              tabs={tabs.map((c) => ({ label: c, value: c }))}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
-
-            <div className="mt-6">
-              {activeTab === "Active Investments" && (
-                <SubmitForReview
-                  investments={investments}
-                //   investmentSummaries={investmentSummaries}
-                //   onRefresh={fetchInvestmentData}
-                />
-              )}
-
-              {activeTab === "Failed Startup" && <FailedCampaign />}
-
-              {activeTab === "Wallet Withdraw" && <WalletWithdraw />}
-
-              {activeTab === "Activity Feed" && (
-                <ActivityFeed
-                  investments={investments}
-                //   onRefresh={fetchInvestmentData}
-                />
-              )}
-            </div>
-          </>
-        )}
-      </section>
-
+        </section>
+      </div>
       <Footer />
     </div>
   );

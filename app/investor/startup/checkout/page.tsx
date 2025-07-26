@@ -30,6 +30,7 @@ import type {
   Project,
   Investor,
 } from "@/service/declarations/plantify-backend.did";
+import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 const Checkout = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -278,8 +279,7 @@ const Checkout = () => {
         });
 
         setSuccess(
-          `Investment successful! You've purchased ${quantity} NFT${
-            quantity > 1 ? "s" : ""
+          `Investment successful! You've purchased ${quantity} NFT${quantity > 1 ? "s" : ""
           } for $${(Number(paymentAmount) / 1e8).toFixed(2)}`
         );
         setPurchaseStep("success");
@@ -369,319 +369,324 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <div className="fixed inset-0 z-0">
+        <DarkVeil />
+      </div>
 
-      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-64 pt-20 sm:pt-32 md:pt-44 pb-16 md:pb-24 bg-neutral-950">
-        <Breadcrumbs
-          segments={[
-            { label: "Explore Startups" },
-            { label: project?.companyName || "-", active: true },
-          ]}
-        />
+      <div className="relative z-10">
+        <Navbar />
 
-        {projectLoading ? (
-          <div className="flex justify-center items-center p-10">
-            <Loader2 className="animate-spin text-white mr-2" size={24} />
-            <span className="text-white">Loading project...</span>
-          </div>
-        ) : projectError ? (
-          <div className="text-red-500 text-center p-6">{projectError}</div>
-        ) : !project ? (
-          <div className="text-gray-400 text-center p-6">
-            Project not found.
-          </div>
-        ) : (
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* col 1 */}
-            <div className="flex flex-col gap-3 w-full">
-              <div className="bg-neutral-900 p-4 w-full flex flex-col gap-3">
-                <span className="text-white">Investment Summary</span>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Company</span>
-                  <span className="text-white">{project.companyName}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Valuation</span>
-                  <span className="text-white">
-                    ${Number(project.companyValuation) / 1e8}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Security Type</span>
-                  <span className="text-white">Tokenized SPV</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Price per NFT</span>
-                  <span className="text-white">
-                    {collection
-                      ? `$${Number(collection.pricePerToken) / 1e8}`
-                      : "Loading..."}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Available NFTs</span>
-                  <span className="text-white">
-                    {collection
-                      ? `${
-                          Number(collection.maxSupply) -
-                          Number(collection.totalSupply)
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-64 pt-20 sm:pt-32 md:pt-44 pb-16 md:pb-24 bg-neutral-950">
+          <Breadcrumbs
+            segments={[
+              { label: "Explore Startups" },
+              { label: project?.companyName || "-", active: true },
+            ]}
+          />
+
+          {projectLoading ? (
+            <div className="flex justify-center items-center p-10">
+              <Loader2 className="animate-spin text-white mr-2" size={24} />
+              <span className="text-white">Loading project...</span>
+            </div>
+          ) : projectError ? (
+            <div className="text-red-500 text-center p-6">{projectError}</div>
+          ) : !project ? (
+            <div className="text-gray-400 text-center p-6">
+              Project not found.
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* col 1 */}
+              <div className="flex flex-col gap-3 w-full">
+                <div className="bg-neutral-900 p-4 w-full flex flex-col gap-3">
+                  <span className="text-white">Investment Summary</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-500">Company</span>
+                    <span className="text-white">{project.companyName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-500">Valuation</span>
+                    <span className="text-white">
+                      ${Number(project.companyValuation) / 1e8}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-500">Security Type</span>
+                    <span className="text-white">Tokenized SPV</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-500">Price per NFT</span>
+                    <span className="text-white">
+                      {collection
+                        ? `$${Number(collection.pricePerToken) / 1e8}`
+                        : "Loading..."}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-neutral-500">Available NFTs</span>
+                    <span className="text-white">
+                      {collection
+                        ? `${Number(collection.maxSupply) -
+                        Number(collection.totalSupply)
                         } / ${Number(collection.maxSupply)}`
-                      : "Loading..."}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-neutral-500">Investor</span>
-                  <span className="text-white">{investorProfile.fullName}</span>
-                </div>
-              </div>
-
-              {/* Success Transaction Details */}
-              {purchaseStep === "success" && transactionDetails && (
-                <div className="bg-green-950 p-4 w-full flex flex-col gap-3 border border-green-700">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="text-green-400" size={20} />
-                    <span className="text-green-300 font-semibold">
-                      Investment Successful!
+                        : "Loading..."}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-green-200">Investment ID</span>
-                    <span className="text-white font-mono text-sm">
-                      {transactionDetails.investmentId}
-                    </span>
+                    <span className="text-neutral-500">Investor</span>
+                    <span className="text-white">{investorProfile.fullName}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-200">NFTs Purchased</span>
-                    <span className="text-white">{quantity}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-green-200">Total Amount</span>
-                    <span className="text-white">
-                      ${transactionDetails.totalAmount}
-                    </span>
-                  </div>
-                  {transactionDetails.tokenIds &&
-                    transactionDetails.tokenIds.length > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-green-200">Token IDs</span>
-                        <span className="text-white font-mono text-sm">
-                          {transactionDetails.tokenIds.slice(0, 3).join(", ")}
-                          {transactionDetails.tokenIds.length > 3 && "..."}
-                        </span>
-                      </div>
-                    )}
-                </div>
-              )}
-
-              <div className="bg-neutral-900 p-4 w-full flex flex-col gap-3">
-                <span className="text-white">How Your Investment Works</span>
-                <div className="flex gap-2">
-                  <span>1.</span>
-                  <p className="text-neutral-500">
-                    <span className="text-white">Escrow</span>
-                    <br />
-                    Your funds are held in a smart contract escrow until the
-                    startup closes.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <span>2.</span>
-                  <p className="text-neutral-500">
-                    <span className="text-white">NFT Distribution</span>
-                    <br />
-                    If successful, you receive NFTs representing your SPV
-                    membership interest.
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <span>3.</span>
-                  <p className="text-neutral-500">
-                    <span className="text-white">Secondary Trading</span>
-                    <br />
-                    Trade your NFTs on our compliant secondary marketplace for
-                    liquidity.
-                  </p>
-                </div>
-              </div>
-
-              <WarningCard
-                title="Investment Risk"
-                description={[
-                  "High Risk: Startups have a high failure rate. You could lose your entire investment.",
-                  "Illiquidity: Your investment may be difficult to sell, even on the secondary market.",
-                  "No Guarantee: There is no guarantee of returns or that the company will succeed.",
-                  "Dilution: Your ownership percentage may decrease with future funding rounds.",
-                ]}
-              />
-            </div>
-
-            {/* col 2 */}
-            <div className="flex flex-col gap-3 w-full">
-              <div className="bg-neutral-800 p-4 w-full flex flex-col gap-3">
-                <span className="text-2xl text-white">
-                  Invest in {project.companyName}
-                </span>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Founded by</span>
-                  <span className="text-white">{project.founderId}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-neutral-500">Valued at</span>
-                  <span className="text-white">
-                    ${Number(project.companyValuation) / 1e8}
-                  </span>
                 </div>
 
-                <div className="border-2 border-dashed border-neutral-600"></div>
-
-                {/* Wallet Connection Status */}
-                <div className="bg-green-950 p-3 rounded-md flex items-center gap-2">
-                  <IcpLogo style={{ width: "20px", height: "auto" }} />
-                  <span className="text-green-300 text-sm">
-                    ✓ Connected as {investorProfile.fullName}
-                  </span>
-                </div>
-
-                <div className="border-2 border-dashed border-neutral-600"></div>
-
-                {purchaseStep === "success" ? (
-                  // Success state - show action buttons
-                  <div className="flex flex-col gap-3">
-                    <div className="text-center py-4">
-                      <CheckCircle
-                        className="mx-auto text-green-400 mb-2"
-                        size={48}
-                      />
-                      <h3 className="text-white text-xl font-semibold mb-2">
-                        Investment Complete!
-                      </h3>
-                      <p className="text-neutral-400">
-                        Your NFTs have been successfully purchased and added to
-                        your portfolio.
-                      </p>
+                {/* Success Transaction Details */}
+                {purchaseStep === "success" && transactionDetails && (
+                  <div className="bg-green-950 p-4 w-full flex flex-col gap-3 border border-green-700">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="text-green-400" size={20} />
+                      <span className="text-green-300 font-semibold">
+                        Investment Successful!
+                      </span>
                     </div>
-
-                    <Button
-                      onClick={handleViewPortfolio}
-                      size="lg"
-                      className="bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white text-sm px-4 py-4 w-full"
-                    >
-                      View My Portfolio
-                    </Button>
-
-                    <Button
-                      onClick={handleInvestMore}
-                      variant="outline"
-                      size="lg"
-                      className="border-white text-white hover:bg-white hover:text-black text-sm px-4 py-4 w-full"
-                    >
-                      Invest More
-                    </Button>
+                    <div className="flex justify-between items-center">
+                      <span className="text-green-200">Investment ID</span>
+                      <span className="text-white font-mono text-sm">
+                        {transactionDetails.investmentId}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-green-200">NFTs Purchased</span>
+                      <span className="text-white">{quantity}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-green-200">Total Amount</span>
+                      <span className="text-white">
+                        ${transactionDetails.totalAmount}
+                      </span>
+                    </div>
+                    {transactionDetails.tokenIds &&
+                      transactionDetails.tokenIds.length > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-green-200">Token IDs</span>
+                          <span className="text-white font-mono text-sm">
+                            {transactionDetails.tokenIds.slice(0, 3).join(", ")}
+                            {transactionDetails.tokenIds.length > 3 && "..."}
+                          </span>
+                        </div>
+                      )}
                   </div>
-                ) : (
-                  // Investment form
-                  <>
-                    <span className="text-white">
-                      Investment Amount (NFT Quantity)
-                    </span>
-                    <Input
-                      placeholder="Enter quantity"
-                      bgClass="bg-neutral-700 text-white"
-                      type="number"
-                      min={1}
-                      max={
-                        collection
-                          ? Number(collection.maxSupply) -
-                            Number(collection.totalSupply)
-                          : undefined
-                      }
-                      value={quantity}
-                      onChange={(e) => setQuantity(Number(e.target.value))}
-                      disabled={loading || purchaseStep === "processing"}
-                    />
-
-                    {collection && (
-                      <div className="text-sm text-neutral-400">
-                        Total: $
-                        {(
-                          (Number(collection.pricePerToken) / 1e8) *
-                          quantity
-                        ).toFixed(2)}
-                      </div>
-                    )}
-
-                    <CheckboxWithLabel
-                      label={
-                        <>
-                          I agree to the{" "}
-                          <a
-                            href="/terms"
-                            className="underline text-white"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Terms of Service
-                          </a>{" "}
-                          and{" "}
-                          <a
-                            href="/subscription-agreement"
-                            className="underline text-white"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Subscription Agreement
-                          </a>
-                        </>
-                      }
-                      checked={agreed}
-                      onChange={(e) => setAgreed(e.target.checked)}
-                      disabled={loading || purchaseStep === "processing"}
-                    />
-
-                    <div className="border-2 border-dashed border-neutral-600"></div>
-
-                    {error && (
-                      <div className="bg-red-950 p-3 rounded-md flex items-center gap-2">
-                        <AlertCircle className="text-red-400" size={16} />
-                        <span className="text-red-300">{error}</span>
-                      </div>
-                    )}
-
-                    <Button
-                      iconLeft={
-                        loading || purchaseStep === "processing" ? (
-                          <Loader2 className="animate-spin" />
-                        ) : (
-                          <Wallet size={20} />
-                        )
-                      }
-                      size="lg"
-                      className="bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white text-sm px-4 py-4 mt-4 w-full"
-                      onClick={handleInvest}
-                      disabled={
-                        loading ||
-                        purchaseStep === "processing" ||
-                        !actor ||
-                        !projectId ||
-                        !collection ||
-                        quantity < 1 ||
-                        !agreed ||
-                        !investorProfile
-                      }
-                    >
-                      {purchaseStep === "processing"
-                        ? "Processing Investment..."
-                        : loading
-                        ? "Connecting..."
-                        : "Invest Now"}
-                    </Button>
-                  </>
                 )}
+
+                <div className="bg-neutral-900 p-4 w-full flex flex-col gap-3">
+                  <span className="text-white">How Your Investment Works</span>
+                  <div className="flex gap-2">
+                    <span>1.</span>
+                    <p className="text-neutral-500">
+                      <span className="text-white">Escrow</span>
+                      <br />
+                      Your funds are held in a smart contract escrow until the
+                      startup closes.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>2.</span>
+                    <p className="text-neutral-500">
+                      <span className="text-white">NFT Distribution</span>
+                      <br />
+                      If successful, you receive NFTs representing your SPV
+                      membership interest.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <span>3.</span>
+                    <p className="text-neutral-500">
+                      <span className="text-white">Secondary Trading</span>
+                      <br />
+                      Trade your NFTs on our compliant secondary marketplace for
+                      liquidity.
+                    </p>
+                  </div>
+                </div>
+
+                <WarningCard
+                  title="Investment Risk"
+                  description={[
+                    "High Risk: Startups have a high failure rate. You could lose your entire investment.",
+                    "Illiquidity: Your investment may be difficult to sell, even on the secondary market.",
+                    "No Guarantee: There is no guarantee of returns or that the company will succeed.",
+                    "Dilution: Your ownership percentage may decrease with future funding rounds.",
+                  ]}
+                />
+              </div>
+
+              {/* col 2 */}
+              <div className="flex flex-col gap-3 w-full">
+                <div className="bg-neutral-800 p-4 w-full flex flex-col gap-3">
+                  <span className="text-2xl text-white">
+                    Invest in {project.companyName}
+                  </span>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Founded by</span>
+                    <span className="text-white">{project.founderId}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Valued at</span>
+                    <span className="text-white">
+                      ${Number(project.companyValuation) / 1e8}
+                    </span>
+                  </div>
+
+                  <div className="border-2 border-dashed border-neutral-600"></div>
+
+                  {/* Wallet Connection Status */}
+                  <div className="bg-green-950 p-3 rounded-md flex items-center gap-2">
+                    <IcpLogo style={{ width: "20px", height: "auto" }} />
+                    <span className="text-green-300 text-sm">
+                      ✓ Connected as {investorProfile.fullName}
+                    </span>
+                  </div>
+
+                  <div className="border-2 border-dashed border-neutral-600"></div>
+
+                  {purchaseStep === "success" ? (
+                    // Success state - show action buttons
+                    <div className="flex flex-col gap-3">
+                      <div className="text-center py-4">
+                        <CheckCircle
+                          className="mx-auto text-green-400 mb-2"
+                          size={48}
+                        />
+                        <h3 className="text-white text-xl font-semibold mb-2">
+                          Investment Complete!
+                        </h3>
+                        <p className="text-neutral-400">
+                          Your NFTs have been successfully purchased and added to
+                          your portfolio.
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={handleViewPortfolio}
+                        size="lg"
+                        className="bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white text-sm px-4 py-4 w-full"
+                      >
+                        View My Portfolio
+                      </Button>
+
+                      <Button
+                        onClick={handleInvestMore}
+                        variant="outline"
+                        size="lg"
+                        className="border-white text-white hover:bg-white hover:text-black text-sm px-4 py-4 w-full"
+                      >
+                        Invest More
+                      </Button>
+                    </div>
+                  ) : (
+                    // Investment form
+                    <>
+                      <span className="text-white">
+                        Investment Amount (NFT Quantity)
+                      </span>
+                      <Input
+                        placeholder="Enter quantity"
+                        bgClass="bg-neutral-700 text-white"
+                        type="number"
+                        min={1}
+                        max={
+                          collection
+                            ? Number(collection.maxSupply) -
+                            Number(collection.totalSupply)
+                            : undefined
+                        }
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
+                        disabled={loading || purchaseStep === "processing"}
+                      />
+
+                      {collection && (
+                        <div className="text-sm text-neutral-400">
+                          Total: $
+                          {(
+                            (Number(collection.pricePerToken) / 1e8) *
+                            quantity
+                          ).toFixed(2)}
+                        </div>
+                      )}
+
+                      <CheckboxWithLabel
+                        label={
+                          <>
+                            I agree to the{" "}
+                            <a
+                              href="/terms"
+                              className="underline text-white"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Terms of Service
+                            </a>{" "}
+                            and{" "}
+                            <a
+                              href="/subscription-agreement"
+                              className="underline text-white"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Subscription Agreement
+                            </a>
+                          </>
+                        }
+                        checked={agreed}
+                        onChange={(e) => setAgreed(e.target.checked)}
+                        disabled={loading || purchaseStep === "processing"}
+                      />
+
+                      <div className="border-2 border-dashed border-neutral-600"></div>
+
+                      {error && (
+                        <div className="bg-red-950 p-3 rounded-md flex items-center gap-2">
+                          <AlertCircle className="text-red-400" size={16} />
+                          <span className="text-red-300">{error}</span>
+                        </div>
+                      )}
+
+                      <Button
+                        iconLeft={
+                          loading || purchaseStep === "processing" ? (
+                            <Loader2 className="animate-spin" />
+                          ) : (
+                            <Wallet size={20} />
+                          )
+                        }
+                        size="lg"
+                        className="bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white text-sm px-4 py-4 mt-4 w-full"
+                        onClick={handleInvest}
+                        disabled={
+                          loading ||
+                          purchaseStep === "processing" ||
+                          !actor ||
+                          !projectId ||
+                          !collection ||
+                          quantity < 1 ||
+                          !agreed ||
+                          !investorProfile
+                        }
+                      >
+                        {purchaseStep === "processing"
+                          ? "Processing Investment..."
+                          : loading
+                            ? "Connecting..."
+                            : "Invest Now"}
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      </div>
 
       <Footer />
     </div>

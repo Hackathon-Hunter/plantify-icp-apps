@@ -29,6 +29,7 @@ import {
   getMyFounderProfile,
 } from "@/service/api/plantifyService";
 import { Project, Founder } from "@/service/declarations/plantify-backend.did";
+import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 export default function DashboardFounder() {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -149,36 +150,42 @@ export default function DashboardFounder() {
   if (profileError || !founderProfile) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
-          <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+        <div className="fixed inset-0 z-0">
+          <DarkVeil />
+        </div>
 
-          <div className="flex flex-col items-center justify-center p-8 bg-red-950 rounded-lg border border-red-700">
-            <AlertTriangle className="text-red-400 mb-4" size={48} />
-            <div className="text-red-300 text-xl mb-4 text-center font-semibold">
-              Founder Registration Required
+        <div className="relative z-10">
+          <Navbar />
+          <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
+            <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+
+            <div className="flex flex-col items-center justify-center p-8 bg-red-950 rounded-lg border border-red-700">
+              <AlertTriangle className="text-red-400 mb-4" size={48} />
+              <div className="text-red-300 text-xl mb-4 text-center font-semibold">
+                Founder Registration Required
+              </div>
+              <p className="text-red-200 mb-6 text-center max-w-md">
+                {profileError ||
+                  "You need to register as a founder to access this dashboard. Please complete your founder registration first."}
+              </p>
+              <div className="flex gap-4">
+                <Button
+                  onClick={() => (window.location.href = "/register/founder")}
+                  className="bg-white text-black hover:bg-neutral-200 px-6 py-2 rounded-md"
+                >
+                  Register as Founder
+                </Button>
+                <Button
+                  onClick={() => (window.location.href = "/")}
+                  variant="outline"
+                  className="border-red-400 text-red-300 hover:bg-red-900/20 px-6 py-2 rounded-md"
+                >
+                  Go Home
+                </Button>
+              </div>
             </div>
-            <p className="text-red-200 mb-6 text-center max-w-md">
-              {profileError ||
-                "You need to register as a founder to access this dashboard. Please complete your founder registration first."}
-            </p>
-            <div className="flex gap-4">
-              <Button
-                onClick={() => (window.location.href = "/register/founder")}
-                className="bg-white text-black hover:bg-neutral-200 px-6 py-2 rounded-md"
-              >
-                Register as Founder
-              </Button>
-              <Button
-                onClick={() => (window.location.href = "/")}
-                variant="outline"
-                className="border-red-400 text-red-300 hover:bg-red-900/20 px-6 py-2 rounded-md"
-              >
-                Go Home
-              </Button>
-            </div>
-          </div>
-        </section>
+          </section>
+        </div>
         <Footer />
       </div>
     );
