@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/ui/Footer";
 import { CardVertical } from "@/components/ui/CardVertical"
 import { CardHorizontal } from "@/components/ui/CardHorizontal"
+import { CardProduct } from "@/components/ui/CardProduct"
+import BadgeWarning from "@/components/ui/BadgeWarning";
+import BadgeMuted from "@/components/ui/BadgeMuted";
 import Navbar from "@/components/ui/Navbar";
 import { IcpLogo } from "@/components/icons";
 
@@ -19,6 +22,7 @@ import {
   ChevronDown,
   Search,
   BanknoteArrowUp,
+  Clock
 } from "lucide-react";
 
 const INDUSTRY_PRICING: Record<string, number> = {
@@ -100,6 +104,53 @@ const LandingPage = () => {
     },
   ];
 
+  const startup = [
+    {
+      id: "startup-1",
+      companyLogo: ["/assets/images/startup-1.png"],
+      companyName: "Raise Capital, Build Community",
+      companyTagline:
+        "Use your fundraising page to showcase your product and vision. Set your terms, upload your pitch deck, and connect directly with investors.",
+      industry: "Fintech",
+      fundingRaised: 1_000_000_000,
+      fundingGoal: 5_000_000_000,
+      targetDate: [String((Date.now() + 1000 * 60 * 60 * 24 * 20) * 1_000_000)],
+    },
+    {
+      id: "startup-2",
+      companyLogo: ["/assets/images/startup-2.png"],
+      companyName: "Back the Next Big Thing",
+      companyTagline:
+        "Invest as little as $100 in early-stage startups. Own tokenized equity, access liquidity, and invest without waiting 10 years for IPO.",
+      industry: { Web3: true },
+      fundingRaised: 3_000_000_000,
+      fundingGoal: 6_000_000_000,
+      targetDate: [String((Date.now() + 1000 * 60 * 60 * 24 * 12) * 1_000_000)],
+    },
+    {
+      id: "startup-3",
+      companyLogo: ["/assets/images/startup-3.png"],
+      companyName: "Scale with Investor Liquidity",
+      companyTagline:
+        "Tokenize your equity, gain access to secondary markets, and open up new opportunities for continuous fundraising.",
+      industry: "Healthtech",
+      fundingRaised: 2_500_000_000,
+      fundingGoal: 4_000_000_000,
+      targetDate: [String((Date.now() + 1000 * 60 * 60 * 24 * 5) * 1_000_000)],
+    },
+    {
+      id: "startup-4",
+      companyLogo: ["/assets/images/startup-4.png"],
+      companyName: "Scale with Investor Liquidity",
+      companyTagline:
+        "Tokenize your equity, gain access to secondary markets, and open up new opportunities for continuous fundraising.",
+      industry: "Healthtech",
+      fundingRaised: 2_500_000_000,
+      fundingGoal: 4_000_000_000,
+      targetDate: [String((Date.now() + 1000 * 60 * 60 * 24 * 5) * 1_000_000)],
+    },
+  ];
+
   const fair = [
     {
       imageUrl: "/assets/images/founder-1.png",
@@ -143,7 +194,7 @@ const LandingPage = () => {
             <Button
               iconLeft={<Search />}
               size="lg"
-              className="bg-white text-black hover:bg-gray-800 hover:text-white text-lg px-8 py-4"
+              className="bg-white text-black hover:bg-transparent hover:border hover:border-white hover:text-white text-lg px-8 py-4"
               onClick={navigateToInvestor}
             >
               Explore Startups
@@ -151,7 +202,7 @@ const LandingPage = () => {
             <Button
               iconLeft={<BanknoteArrowUp />}
               size="lg"
-              className="bg-transparent text-white text-lg px-8 py-4 hover:bg-gray-800"
+              className="bg-transparent text-white text-lg px-8 py-4 hover:bg-white hover:text-black"
               onClick={navigateToInvestor}
             >
               Raise Capital
@@ -208,6 +259,65 @@ const LandingPage = () => {
               <span className="text-white">access</span>.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Startup list */}
+      <section className="py-12 lg:pb-32 lg:py-0 px-4 sm:px-6 lg:px-44 bg-black text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col text-center md:text-left mb-12 md:mb-16 gap-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-normal">
+              Built for Visionaries and Believers
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto md:mx-0">
+              CryptoFund bridges bold founders and visionary investors through trust and blockchain innovation.
+            </p>
+
+          </div>
+
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-6 items-stretch">
+          {startup.map((item, idx) => (
+            <CardProduct
+              key={item.id || idx}
+              imageUrl={item.companyLogo?.[0] || "/assets/images/dummy-explore-1.png"}
+              title={item.companyName}
+              description={item.companyTagline}
+              buttonText="View Detail"
+              buttonIcon={<Search />}
+              rightBadge={
+                <BadgeWarning
+                  text={(() => {
+                    if (item.targetDate && item.targetDate[0]) {
+                      const now = Date.now();
+                      const target = Number(item.targetDate[0]) / 1_000_000;
+                      const days = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
+                      return `${days} days left`;
+                    }
+                    return "-";
+                  })()}
+                  icon={<Clock size={15} />}
+                  iconPosition="left"
+                />
+              }
+              leftBadge={
+                <BadgeMuted
+                  text={(() => {
+                    if (typeof item.industry === "object") {
+                      return Object.keys(item.industry)[0];
+                    }
+                    return item.industry;
+                  })()}
+                />
+              }
+              raisedAmount={Number(item.fundingRaised) / 1e8}
+              goalAmount={Number(item.fundingGoal) / 1e8}
+              handleClick={() => {
+                router.push(`/investor/startup/detail?id=${item.id}`);
+              }}
+            />
+          ))}
         </div>
       </section>
 
@@ -502,7 +612,7 @@ const LandingPage = () => {
                   <Button
                     iconLeft={<Search />}
                     size="lg"
-                    className="bg-white text-black hover:bg-gray-800 hover:text-white text-sm px-8 py-4"
+                    className="bg-white text-black hover:bg-transparent hover:border hover:border-white hover:text-white text-sm px-8 py-4"
                     onClick={navigateToInvestor}
                   >
                     Own the future, one NFT at a time
@@ -513,7 +623,7 @@ const LandingPage = () => {
                   <Button
                     iconLeft={<BanknoteArrowUp />}
                     size="lg"
-                    className="bg-white text-black text-sm px-8 py-4 hover:bg-gray-800"
+                    className="bg-white text-black text-sm px-8 py-4 hover:bg-transparent hover:border hover:border-white hover:text-white"
                     onClick={navigateToInvestor}
                   >
                     Turn your users into investors
