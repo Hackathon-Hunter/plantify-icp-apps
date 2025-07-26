@@ -196,7 +196,7 @@ export default function DashboardInvestor() {
           0
         );
         const totalInvestedICP = total / 100_000_000; // Convert from e8s to ICP
-        setTotalInvested(totalInvestedICP);
+        setTotalInvested(total);
 
         // Count of unique projects invested in
         const uniqueProjects = new Set(
@@ -211,7 +211,7 @@ export default function DashboardInvestor() {
           0
         );
         const portfolioValueICP = currentValue / 100_000_000; // Convert from e8s to ICP
-        setPortfolioValue(portfolioValueICP);
+        setPortfolioValue(currentValue);
 
         // Calculate return percentage
         if (total > 0) {

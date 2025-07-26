@@ -38,11 +38,6 @@ const getDaysSinceIcpTimestamp = (timestamp: bigint): number => {
   return diffDays;
 };
 
-const formatIcpAmount = (amount: bigint, decimals: number = 2): string => {
-  const icpAmount = Number(amount) / 100_000_000; // Convert from e8s to ICP/USD
-  return icpAmount.toFixed(decimals);
-};
-
 export default function ActiveInvestment({
   investments = [],
   onRefresh,
@@ -151,7 +146,7 @@ export default function ActiveInvestment({
         const project = projectsMap[investment.projectId];
         const status = getStatusDisplay(investment.status);
         const returnValue = calculateReturn(investment);
-        const investmentAmount = formatIcpAmount(investment.amount);
+        const investmentAmount = investment.amount;
         const paperValue = (Number(investmentAmount) + returnValue).toFixed(2);
         
         

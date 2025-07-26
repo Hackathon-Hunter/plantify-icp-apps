@@ -542,7 +542,7 @@ const Checkout = () => {
                   <div className="bg-green-950 p-3 rounded-md flex items-center gap-2">
                     <IcpLogo style={{ width: "20px", height: "auto" }} />
                     <span className="text-green-300 text-sm">
-                      ✓ Connected as {investorProfile.fullName}
+                      ✓ Connected as {investorProfile.id}
                     </span>
                   </div>
 
