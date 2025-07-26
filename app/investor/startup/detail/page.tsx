@@ -21,9 +21,11 @@ import {
   UsersRound,
   ScrollText,
   FileText,
+  Loader2
 } from "lucide-react";
 
 import { getProject } from "@/service/api/plantifyService";
+import { downloadFile } from "@/service/api/fileDownloadService";
 import type {
   _SERVICE,
   Project,
@@ -33,12 +35,14 @@ import { ActorSubclass } from "@dfinity/agent";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 
 const StartUpDetails = () => {
   const [activeTab, setActiveTab] = useState("Overview");
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
   const { actor } = useAuth();
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -59,12 +63,23 @@ const StartUpDetails = () => {
   const extraTabs = ["Overview", "Financials", "Teams", "Updates"];
   const tabs = [...extraTabs];
 
-  // const filteredCampaigns =
-  //     activeTab === "Overview"
-  //         ? projects
-  //         : campaignCategories.includes(activeTab)
-  //             ? projects.filter((c) => c.category === activeTab)
-  //             : []
+  const handleDownload = async (fileUrl: string | undefined, fileType: string) => {
+    if (!fileUrl) {
+      toast.error(`No ${fileType} available for download`);
+      return;
+    }
+    
+    setDownloadingFile(fileType);
+    try {
+      await downloadFile(fileUrl);
+      toast.success(`${fileType} downloaded successfully`);
+    } catch (error) {
+      console.error(`Error downloading ${fileType}:`, error);
+      toast.error(`Failed to download ${fileType}`);
+    } finally {
+      setDownloadingFile(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -315,25 +330,30 @@ const StartUpDetails = () => {
                 <span>Documents</span>
                 <Button
                   iconLeft={<LayoutPanelLeft />}
-                  iconRight={<Download />}
+                  iconRight={downloadingFile === 'Pitch Deck' ? <Loader2 className="animate-spin" /> : <Download />}
                   size="lg"
                   className="bg-neutral-700 text-white hover:bg-gray-800 hover:text-white text-sm px-4 py-4 w-full"
+                  onClick={() => handleDownload(project.pitchDeckUrl?.[0], 'Pitch Deck')}
+                  disabled={downloadingFile !== null}
                 >
                   Pitch Deck
                 </Button>
                 <Button
                   iconLeft={<ScrollText />}
-                  iconRight={<Download />}
+                  iconRight={downloadingFile === 'Demo Video' ? <Loader2 className="animate-spin" /> : <Download />}
                   size="lg"
                   className="bg-neutral-700 text-white hover:bg-gray-800 hover:text-white text-sm px-4 py-4 w-full"
+                  onClick={() => handleDownload(project.demoVideoUrl?.[0], 'Demo Video')}
+                  disabled={downloadingFile !== null}
                 >
-                  Financial Statements
+                  Demo Video
                 </Button>
                 <Button
                   iconLeft={<FileText />}
                   iconRight={<Download />}
                   size="lg"
                   className="bg-neutral-700 text-white hover:bg-gray-800 hover:text-white text-sm px-4 py-4 w-full"
+                  disabled={true}
                 >
                   Legal Documents
                 </Button>
@@ -342,6 +362,7 @@ const StartUpDetails = () => {
                   iconRight={<Download />}
                   size="lg"
                   className="bg-neutral-700 text-white hover:bg-gray-800 hover:text-white text-sm px-4 py-4 w-full"
+                  disabled={true}
                 >
                   Form C Filing
                 </Button>
