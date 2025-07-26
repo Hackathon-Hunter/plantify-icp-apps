@@ -82,12 +82,14 @@ const Explore = () => {
         <section
           className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-44 pt-20 sm:pt-32 md:pt-44 pb-16 md:pb-24"
         >
-          <Image
-            src={filteredProjects[0]?.companyLogo?.[0] || "/assets/images/dummy-explore-1.png"}
-            alt="Explore1"
-            height={100}
-            width={100}
-          />
+          {filteredProjects[0]?.companyLogo?.[0] && (
+            <Image
+              src={filteredProjects[0].companyLogo[0]}
+              alt="Explore1"
+              height={100}
+              width={100}
+            />
+          )}
 
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Card Horizontal */}
