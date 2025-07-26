@@ -36,7 +36,7 @@ export default function Register() {
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 text-white">
                 <CircleCheckBig />
-                <span>Browse vetted startup campaigns</span>
+                <span>Browse vetted startup projects</span>
               </div>
               <div className="flex gap-2 text-white">
                 <CircleCheckBig />

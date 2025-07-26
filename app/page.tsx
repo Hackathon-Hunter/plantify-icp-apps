@@ -79,7 +79,7 @@ const LandingPage = () => {
     },
   ];
 
-  const campaigns = [
+  const projects = [
     {
       imageUrl: "/assets/images/built-1.png",
       title: "Raise Capital, Build Community",
@@ -225,7 +225,7 @@ const LandingPage = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6 items-stretch">
-            {campaigns.map((item, idx) => (
+            {projects.map((item, idx) => (
               <div key={idx} className="w-full lg:flex-1 flex">
                 <CardVertical {...item} className="w-full h-full flex-1" />
               </div>

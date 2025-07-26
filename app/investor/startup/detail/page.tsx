@@ -61,9 +61,9 @@ const StartUpDetails = () => {
 
   // const filteredCampaigns =
   //     activeTab === "Overview"
-  //         ? campaigns
+  //         ? projects
   //         : campaignCategories.includes(activeTab)
-  //             ? campaigns.filter((c) => c.category === activeTab)
+  //             ? projects.filter((c) => c.category === activeTab)
   //             : []
 
   return (

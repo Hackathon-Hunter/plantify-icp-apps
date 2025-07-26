@@ -61,7 +61,7 @@ export default function StartupCreate() {
             <Navbar />
 
             <section
-                className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-0 pt-0 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-5xl mx-auto"
+                className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-0 pt-0 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto"
             >
                 <Breadcrumbs
                     segments={[
