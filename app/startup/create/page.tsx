@@ -16,6 +16,7 @@ import CompanyDetails from "./partial/CompanyDetails";
 import FundingDetails from "./partial/FundingDetails";
 import TeamMedia from "./partial/TeamMedia";
 import ReviewSubmit from "./partial/ReviewSubmit";
+import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 export default function StartupCreate() {
     const router = useRouter();
@@ -37,13 +38,13 @@ export default function StartupCreate() {
 
         try {
             console.log("Form data before conversion:", formData);
-            
+
             // Use the utility function to convert the form data
             const projectRequest = createProjectRequestFromForm(formData);
             console.log("Submitting project request:", projectRequest);
-            
+
             const result = await createProject(actor, projectRequest);
-            
+
             if ('ok' in result) {
                 toast.success("Project created successfully!");
                 router.push("/startup/dashboard");
@@ -58,24 +59,31 @@ export default function StartupCreate() {
 
     return (
         <div className="min-h-screen bg-background">
-            <Navbar />
+            <div className="fixed inset-0 z-0">
+                <DarkVeil />
+            </div>
 
-            <section
-                className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-0 pt-0 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto"
-            >
-                <Breadcrumbs
-                    segments={[
-                        { label: "Back to Home" },
-                    ]}
-                />
+            <div className="relative z-10">
+                <Navbar />
 
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-white text-4xl">Create Your Startup</h2>
-                    <span>Launch your fundraising startup and connect with investors worldwide</span>
+                <section
+                    className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-0 pt-0 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto"
+                >
+                    <Breadcrumbs
+                        segments={[
+                            { label: "Back to Home" },
+                        ]}
+                    />
 
-                    <MultiStepForm steps={steps} onSubmit={handleSubmit} />
-                </div>
-            </section>
+                    <div className="flex flex-col gap-4">
+                        <h2 className="text-white text-4xl">Create Your Startup</h2>
+                        <span>Launch your fundraising startup and connect with investors worldwide</span>
+
+                        <MultiStepForm steps={steps} onSubmit={handleSubmit} />
+                    </div>
+                </section>
+            </div>
+
 
             <Footer />
         </div>
