@@ -345,56 +345,80 @@ const createDefaultIndustry = (): Industry => ({ Other: null });
 const createDefaultProjectType = (): ProjectType => ({ Other: null });
 
 // Utility to convert form data to ProjectCreateRequest
-export const createProjectRequestFromForm = (formData: ProjectFormDataType): ProjectCreateRequest => {
+export const createProjectRequestFromForm = (
+  formData: ProjectFormDataType
+): ProjectCreateRequest => {
   console.log("Converting form data to project request:", formData);
-  
+
   return {
     companyName: formData.companyName || "",
     industry: formData.industry || createDefaultIndustry(),
     projectType: formData.projectType || createDefaultProjectType(),
     companyTagline: formData.companyTagline || "",
     location: formData.location || "",
-    website: formData.website && formData.website.trim() !== '' ? [formData.website] : [],
+    website:
+      formData.website && formData.website.trim() !== ""
+        ? [formData.website]
+        : [],
     problem: formData.problem || "",
     solution: formData.solution || "",
     marketOpportunity: formData.marketOpportunity || "",
     fundingGoal: BigInt(formData.fundingGoal || 0),
     companyValuation: BigInt(formData.companyValuation || 0),
     minInvestment: BigInt(formData.minInvestment || 0),
-    maxInvestment: formData.maxInvestment ? [BigInt(formData.maxInvestment)] : [],
+    maxInvestment: formData.maxInvestment
+      ? [BigInt(formData.maxInvestment)]
+      : [],
     expectedROI: formData.expectedROI || "",
     riskLevel: formData.riskLevel || "Medium",
     timeline: formData.timeline || "",
-    useOfFunds: (formData.useOfFunds || []).map(item => ({
+    useOfFunds: (formData.useOfFunds || []).map((item) => ({
       category: item.category || "",
       amount: BigInt(item.amount || 0),
       percentage: item.percentage || 0,
-      description: item.description || ""
+      description: item.description || "",
     })),
-    teamMembers: (formData.teamMembers || []).map(member => ({
+    teamMembers: (formData.teamMembers || []).map((member) => ({
       name: member.name || "",
       role: member.role || "",
-      bio: member.bio && member.bio.trim() !== '' ? [member.bio] : [],
-      imageUrl: member.imageUrl && member.imageUrl.trim() !== '' ? [member.imageUrl] : [],
-      linkedinUrl: member.linkedinUrl && member.linkedinUrl.trim() !== '' ? [member.linkedinUrl] : []
+      bio: member.bio && member.bio.trim() !== "" ? [member.bio] : [],
+      imageUrl:
+        member.imageUrl && member.imageUrl.trim() !== ""
+          ? [member.imageUrl]
+          : [],
+      linkedinUrl:
+        member.linkedinUrl && member.linkedinUrl.trim() !== ""
+          ? [member.linkedinUrl]
+          : [],
     })),
-    milestones: (formData.milestones || []).map(milestone => ({
+    milestones: (formData.milestones || []).map((milestone) => ({
       title: milestone.title || "",
       description: milestone.description || "",
       fundingRequired: BigInt(milestone.fundingRequired || 0),
-      targetDate: milestone.targetDate ? [BigInt(milestone.targetDate.getTime())] : [],
+      targetDate: milestone.targetDate
+        ? [BigInt(milestone.targetDate.getTime())]
+        : [],
       completed: milestone.completed || false,
-      completedDate: []
+      completedDate: [],
     })),
     productImages: formData.productImages || [],
-    companyLogo: formData.companyLogo && formData.companyLogo.trim() !== '' ? [formData.companyLogo] : [],
-    pitchDeckUrl: formData.pitchDeckUrl && formData.pitchDeckUrl.trim() !== '' ? [formData.pitchDeckUrl] : [],
-    demoVideoUrl: formData.demoVideoUrl && formData.demoVideoUrl.trim() !== '' ? [formData.demoVideoUrl] : [],
+    companyLogo:
+      formData.companyLogo && formData.companyLogo.trim() !== ""
+        ? [formData.companyLogo]
+        : [],
+    pitchDeckUrl:
+      formData.pitchDeckUrl && formData.pitchDeckUrl.trim() !== ""
+        ? [formData.pitchDeckUrl]
+        : [],
+    demoVideoUrl:
+      formData.demoVideoUrl && formData.demoVideoUrl.trim() !== ""
+        ? [formData.demoVideoUrl]
+        : [],
     tags: formData.tags || [],
     minimumFunding: BigInt(formData.minimumFunding || 0),
     jurisdiction: [],
     legalStructure: [],
-    targetDate: []
+    targetDate: [],
   };
 };
 
@@ -791,7 +815,9 @@ export const getMyICPBalance = async (
 ): Promise<{ ok: bigint } | { err: string }> => {
   try {
     const result = await actor.getMyICPBalance();
-    return result;
+    return {
+      ok: result,
+    };
   } catch (error) {
     console.error("Error fetching my ICP balance:", error);
     throw error;
