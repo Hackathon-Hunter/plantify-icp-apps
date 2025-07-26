@@ -131,7 +131,7 @@ export default function DashboardFounder() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
           <div className="flex justify-center items-center p-10">
             <Loader2 className="animate-spin text-white mr-2" size={24} />
             <span className="text-white">
@@ -150,7 +150,7 @@ export default function DashboardFounder() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
           <Breadcrumbs segments={[{ label: "Back to Home" }]} />
 
           <div className="flex flex-col items-center justify-center p-8 bg-red-950 rounded-lg border border-red-700">
@@ -188,7 +188,7 @@ export default function DashboardFounder() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
         <Breadcrumbs segments={[{ label: "Back to Home" }]} />
 
         <div className="flex flex-col gap-2">

@@ -36,7 +36,7 @@ const LandingPage = () => {
 
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [investment, setInvestment] = useState<number | string>('');
-  const [period, setPeriod] = useState(5);
+  const [period, _setPeriod] = useState(5);
   const [yieldType, setYieldType] = useState<'last' | 'average'>('last');
   const [autoReinvest, setAutoReinvest] = useState(false);
   const [plan, setPlan] = useState<'one-time' | 'monthly'>('one-time');
@@ -87,7 +87,7 @@ const LandingPage = () => {
     },
   ];
 
-  const campaigns = [
+  const projects = [
     {
       imageUrl: "/assets/images/built-1.png",
       title: "Raise Capital, Build Community",
@@ -404,7 +404,7 @@ const LandingPage = () => {
                   <div className="h-10 w-32 bg-neutral-700 rounded mt-auto" />
                 </div>
               ))
-              : campaigns.map((item, idx) => (
+              : projects.map((item, idx) => (
                 <div key={idx} className="w-full lg:flex-1 flex">
                   <CardVertical {...item} className="w-full h-full flex-1" />
                 </div>

@@ -272,7 +272,7 @@ export default function RegisterInvestor(): JSX.Element {
     <div className="min-h-screen bg-neutral-950">
       <Navbar />
 
-      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-5xl mx-auto">
+      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto">
         <Breadcrumbs segments={[{ label: "Back to Home" }]} backLink="/" />
 
         <span className="text-white text-3xl my-4 font-semibold">

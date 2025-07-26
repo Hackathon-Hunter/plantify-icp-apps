@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UploadFileButton } from '@/components/ui/UploadFileButton';
 import { StepComponentProps } from "@/components/ui/MultiStepForm";
+import { uploadFile, uploadMultipleFiles } from "@/service/api/fileUploadService";
 
 import {
     ArrowRight,
     ArrowLeft,
     Plus,
-    Trash2
+    Trash2,
+    Loader2
 } from "lucide-react";
 
 export default function TeamMedia({ nextStep, prevStep, formData, updateFormData }: StepComponentProps) {
@@ -51,13 +53,73 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
         }));
     };
 
-    // For demo purposes, just using URLs instead of actual file uploads
-    const handleFileChange = (field: 'pitchDeckUrl' | 'demoVideoUrl' | 'companyLogo' | 'productImages', files: FileList | null) => {
-        if (files && files.length > 0) {
-            // In a real app, you'd upload these files to storage and get URLs
-            const fileName = files[0].name;
-            // For demo, just store the file name as if it were a URL
-            handleMediaChange(field, `https://example.com/uploads/${fileName}`);
+    // State to track upload loading status
+    const [isUploading, setIsUploading] = useState({
+        pitchDeck: false,
+        demoVideo: false,
+        companyLogo: false,
+        productImages: false
+    });
+
+    // Handle file uploads with the Supabase file upload service
+    const handleFileChange = async (field: 'pitchDeckUrl' | 'demoVideoUrl' | 'companyLogo' | 'productImages', files: FileList | null) => {
+        if (!files || files.length === 0) return;
+
+        // Set the appropriate loading state
+        setIsUploading(prev => ({
+            ...prev,
+            [field === 'pitchDeckUrl' ? 'pitchDeck' : 
+             field === 'demoVideoUrl' ? 'demoVideo' : 
+             field === 'companyLogo' ? 'companyLogo' : 'productImages']: true
+        }));
+
+        try {
+            // For single file uploads
+            if (field !== 'productImages') {
+                const fileType = field === 'pitchDeckUrl' ? 'pitchDeck' : 
+                                field === 'demoVideoUrl' ? 'demoVideo' : 'logo';
+                
+                const result = await uploadFile(files[0], fileType);
+                
+                if (result.success && result.url) {
+                    handleMediaChange(field, result.url);
+                } else {
+                    console.error(`Error uploading ${fileType}:`, result.error);
+                    alert(`Failed to upload file: ${result.error}`);
+                }
+            } 
+            // For multiple files (product images)
+            else {
+                const fileArray = Array.from(files);
+                const results = await uploadMultipleFiles(fileArray, 'productImage');
+                
+                // Filter successful uploads and get their URLs
+                const successfulUploads = results
+                    .filter(result => result.success && result.url)
+                    .map(result => result.url as string);
+                
+                if (successfulUploads.length > 0) {
+                    handleMediaChange('productImages', [...media.productImages, ...successfulUploads]);
+                }
+                
+                // Check if there were any errors
+                const errors = results.filter(result => !result.success);
+                if (errors.length > 0) {
+                    console.error('Some files failed to upload:', errors);
+                    alert(`${errors.length} file(s) failed to upload.`);
+                }
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('An error occurred during upload.');
+        } finally {
+            // Reset loading state
+            setIsUploading(prev => ({
+                ...prev,
+                [field === 'pitchDeckUrl' ? 'pitchDeck' : 
+                 field === 'demoVideoUrl' ? 'demoVideo' : 
+                 field === 'companyLogo' ? 'companyLogo' : 'productImages']: false
+            }));
         }
     };
 
@@ -149,9 +211,21 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
 
                     <UploadFileButton
                         onChange={(e) => handleFileChange('pitchDeckUrl', e.target.files)}
-                    />
+                        accept=".pdf"
+                        className={`${isUploading.pitchDeck ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isUploading.pitchDeck ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : 'Choose File'}
+                    </UploadFileButton>
                     {media.pitchDeckUrl && (
-                        <span className="text-green-500 text-xs mt-2">File uploaded: {media.pitchDeckUrl.split('/').pop()}</span>
+                        <div className="flex flex-col items-center">
+                            <span className="text-green-500 text-xs mt-2">File uploaded: {media.pitchDeckUrl.split('/').pop()}</span>
+                            <a href={media.pitchDeckUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs underline">View file</a>
+                        </div>
                     )}
                 </div>
                 <div className="bg-neutral-700 flex flex-col gap-4 justify-center items-center p-4 w-full">
@@ -160,9 +234,21 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
 
                     <UploadFileButton
                         onChange={(e) => handleFileChange('demoVideoUrl', e.target.files)}
-                    />
+                        accept=".mp4,.mov,.avi"
+                        className={`${isUploading.demoVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isUploading.demoVideo ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : 'Choose File'}
+                    </UploadFileButton>
                     {media.demoVideoUrl && (
-                        <span className="text-green-500 text-xs mt-2">File uploaded: {media.demoVideoUrl.split('/').pop()}</span>
+                        <div className="flex flex-col items-center">
+                            <span className="text-green-500 text-xs mt-2">File uploaded: {media.demoVideoUrl.split('/').pop()}</span>
+                            <a href={media.demoVideoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 text-xs underline">View file</a>
+                        </div>
                     )}
                 </div>
             </div>
@@ -174,9 +260,21 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
 
                     <UploadFileButton
                         onChange={(e) => handleFileChange('companyLogo', e.target.files)}
-                    />
+                        accept=".png,.jpg,.jpeg"
+                        className={`${isUploading.companyLogo ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isUploading.companyLogo ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : 'Choose File'}
+                    </UploadFileButton>
                     {media.companyLogo && (
-                        <span className="text-green-500 text-xs mt-2">File uploaded: {media.companyLogo.split('/').pop()}</span>
+                        <div className="flex flex-col items-center">
+                            <span className="text-green-500 text-xs mt-2">File uploaded: {media.companyLogo.split('/').pop()}</span>
+                            <img src={media.companyLogo} alt="Company Logo" className="h-16 mt-2 object-contain" />
+                        </div>
                     )}
                 </div>
                 <div className="bg-neutral-700 flex flex-col gap-4 justify-center items-center p-4 w-full">
@@ -184,18 +282,31 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
                     <span className="text-neutral-400 text-center text-sm">Screenshots or photos (Multiple files allowed)</span>
 
                     <UploadFileButton
-                        onChange={(e) => {
-                            if (e.target.files && e.target.files.length > 0) {
-                                // In a real app, you'd upload these files and get URLs back
-                                const newImageUrls = Array.from(e.target.files).map(
-                                    file => `https://example.com/uploads/${file.name}`
-                                );
-                                handleMediaChange('productImages', [...media.productImages, ...newImageUrls]);
-                            }
-                        }}
-                    />
+                        onChange={(e) => handleFileChange('productImages', e.target.files)}
+                        accept=".png,.jpg,.jpeg"
+                        className={`${isUploading.productImages ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isUploading.productImages ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Uploading...
+                            </>
+                        ) : 'Choose File'}
+                    </UploadFileButton>
                     {media.productImages.length > 0 && (
-                        <span className="text-green-500 text-xs mt-2">{media.productImages.length} images uploaded</span>
+                        <div className="flex flex-col items-center">
+                            <span className="text-green-500 text-xs mt-2">{media.productImages.length} images uploaded</span>
+                            <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                                {media.productImages.slice(0, 3).map((url, index) => (
+                                    <img key={index} src={url} alt={`Product ${index + 1}`} className="h-12 w-12 object-cover" />
+                                ))}
+                                {media.productImages.length > 3 && (
+                                    <div className="h-12 w-12 bg-neutral-600 flex items-center justify-center text-white rounded">
+                                        +{media.productImages.length - 3}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
