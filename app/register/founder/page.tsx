@@ -136,7 +136,8 @@ export default function RegisterFounder(): JSX.Element {
       setIsCheckingProfile(true);
       try {
         const profile = await getMyFounderProfile(actor);
-
+        console.log(profile);
+        
         if (profile) {
           setExistingFounder(profile);
         } else {
@@ -567,7 +568,7 @@ export default function RegisterFounder(): JSX.Element {
                       <p>Status: {JSON.stringify(status, null, 2)}</p>
                       <p>
                         Existing Founder:{" "}
-                        {JSON.stringify(existingFounder, null, 2)}
+                        {existingFounder?.fullName}
                       </p>
                     </div>
                   </details>

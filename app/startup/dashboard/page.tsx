@@ -14,13 +14,21 @@ import Compliance from "./partial/Compliance";
 import Updates from "./partial/Updates";
 import ProfitDistribution from "./partial/ProfitDistribution";
 
-import { TrendingUp, BanknoteArrowUp, Users, Calendar } from "lucide-react";
+import {
+  TrendingUp,
+  BanknoteArrowUp,
+  Users,
+  Calendar,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   getMyProjects,
   getInvestorCountForProject,
+  getMyFounderProfile,
 } from "@/service/api/plantifyService";
-import { Project } from "@/service/declarations/plantify-backend.did";
+import { Project, Founder } from "@/service/declarations/plantify-backend.did";
 
 export default function DashboardFounder() {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -28,6 +36,9 @@ export default function DashboardFounder() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [investorCount, setInvestorCount] = useState<bigint>(BigInt(0));
   const [loading, setLoading] = useState<boolean>(true);
+  const [founderProfile, setFounderProfile] = useState<Founder | null>();
+  const [profileLoading, setProfileLoading] = useState<boolean>(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const extraTabs = [
     "Overview",
@@ -38,38 +49,74 @@ export default function DashboardFounder() {
     "Investors",
   ];
   const tabs = [...extraTabs];
-  const { actor, isAuthenticated } = useAuth();
+  const { actor, isAuthenticated, principal } = useAuth();
+
+  useEffect(() => {
+    const checkFounderProfile = async () => {
+      if (!actor || !isAuthenticated || !principal) {
+        return;
+      }
+
+      setProfileLoading(true);
+      setProfileError(null);
+
+      try {
+        const profile = await getMyFounderProfile(actor);
+
+        setFounderProfile(profile);
+
+        if (!profile) {
+          setProfileError(
+            "You need to register as a founder to access this dashboard."
+          );
+        }
+      } catch (error) {
+        console.error("❌ Error checking founder profile:", error);
+        setProfileError("Failed to verify founder status. Please try again.");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkFounderProfile();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [actor, isAuthenticated, principal]);
 
   useEffect(() => {
     const fetchProjects = async () => {
-      if (actor && isAuthenticated) {
-        try {
-          setLoading(true);
-          const myProjects = await getMyProjects(actor);
-          setProjects(myProjects);
+      if (!actor || !isAuthenticated || !founderProfile) {
+        return;
+      }
 
-          if (myProjects.length > 0) {
-            setCurrentProject(myProjects[0]);
+      try {
+        setLoading(true);
 
-            // Get investor count for the first project
-            const investors = await getInvestorCountForProject(
-              actor,
-              myProjects[0].id
-            );
-            setInvestorCount(investors);
-          }
-        } catch (error) {
-          console.error("Error fetching projects:", error);
-        } finally {
-          setLoading(false);
+        const myProjects = await getMyProjects(actor);
+
+        setProjects(myProjects);
+
+        if (myProjects.length > 0) {
+          setCurrentProject(myProjects[0]);
+
+          const investors = await getInvestorCountForProject(
+            actor,
+            myProjects[0].id
+          );
+          setInvestorCount(investors);
         }
+      } catch (error) {
+        console.error("❌ Error fetching projects:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProjects();
-  }, [actor, isAuthenticated]);
+  }, [actor, isAuthenticated, founderProfile]);
 
-  // Calculate progress percentage
   const calculateProgress = () => {
     if (!currentProject) return 0;
 
@@ -80,12 +127,76 @@ export default function DashboardFounder() {
     return Math.round((raised / goal) * 100);
   };
 
+  if (profileLoading || (!actor && isAuthenticated)) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+          <div className="flex justify-center items-center p-10">
+            <Loader2 className="animate-spin text-white mr-2" size={24} />
+            <span className="text-white">
+              {profileLoading
+                ? "Verifying founder profile..."
+                : "Initializing connection..."}
+            </span>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (profileError || !founderProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+          <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+
+          <div className="flex flex-col items-center justify-center p-8 bg-red-950 rounded-lg border border-red-700">
+            <AlertTriangle className="text-red-400 mb-4" size={48} />
+            <div className="text-red-300 text-xl mb-4 text-center font-semibold">
+              Founder Registration Required
+            </div>
+            <p className="text-red-200 mb-6 text-center max-w-md">
+              {profileError ||
+                "You need to register as a founder to access this dashboard. Please complete your founder registration first."}
+            </p>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => (window.location.href = "/register/founder")}
+                className="bg-white text-black hover:bg-neutral-200 px-6 py-2 rounded-md"
+              >
+                Register as Founder
+              </Button>
+              <Button
+                onClick={() => (window.location.href = "/")}
+                variant="outline"
+                className="border-red-400 text-red-300 hover:bg-red-900/20 px-6 py-2 rounded-md"
+              >
+                Go Home
+              </Button>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
         <Breadcrumbs segments={[{ label: "Back to Home" }]} />
+
+        <div className="flex flex-col gap-2">
+          <h2 className="text-white text-4xl">Founder Dashboard</h2>
+          <span className="text-neutral-500">
+            Welcome back, {founderProfile.fullName}
+          </span>
+        </div>
 
         {loading ? (
           <div className="w-full">

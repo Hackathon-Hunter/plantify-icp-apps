@@ -1,139 +1,183 @@
-import { useState, useEffect, useCallback } from "react";
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { AuthClient } from "@dfinity/auth-client";
-import { ActorSubclass } from "@dfinity/agent";
-import {
-  _SERVICE,
-} from "@/service/declarations/plantify-backend.did";
-import { createActor } from "@/service/declarations";
+import { Actor, ActorSubclass, HttpAgent, Identity } from "@dfinity/agent";
+import { Principal } from "@dfinity/principal";
+import { idlFactory } from "@/service/declarations/plantify-backend.did";
+import type { _SERVICE } from "@/service/declarations/plantify-backend.did";
 
-const identityProvider = "https://identity.ic0.app";
-const canisterId = "a5ptu-ryaaa-aaaai-q32cq-cai";
-const host = "https://ic0.app";
-
-type AuthState = {
-  actor: ActorSubclass<_SERVICE> | undefined;
-  authClient: AuthClient | undefined;
+interface AuthContextType {
   isAuthenticated: boolean;
-  principal: string;
+  principal: Principal | null;
+  actor: ActorSubclass<_SERVICE> | null;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
   isLoading: boolean;
+  authClient: AuthClient | null;
+  isInitialized: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  principal: null,
+  actor: null,
+  login: async () => {},
+  logout: async () => {},
+  isLoading: true,
+  authClient: null,
+  isInitialized: false,
+});
+
+const CANISTER_ID = "a5ptu-ryaaa-aaaai-q32cq-cai";
+
+const getIdentityProviderUrl = () => {
+  return "https://identity.ic0.app";
 };
 
-export const useAuth = () => {
-  const [state, setState] = useState<AuthState>({
-    actor: undefined,
-    authClient: undefined,
-    isAuthenticated: false,
-    principal: 'Click "Whoami" to see your principal ID',
-    isLoading: true,
-  });
-
-  const updateActor = useCallback(async () => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
-
-    try {
-      const authClient = await AuthClient.create();
-      const identity = authClient.getIdentity();
-
-      const actor = createActor(canisterId, {
-        agentOptions: {
-          identity,
-          host
-        },
-      });
-
-      const isAuthenticated = await authClient.isAuthenticated();
-
-      setState((prev) => ({
-        ...prev,
-        actor,
-        authClient,
-        isAuthenticated,
-        principal: identity.getPrincipal().toString(),
-      }));
-    } catch (error) {
-      console.error("Failed to update actor:", error);
-      throw error;
-    }
-  }, []);
-
-  const initializeAuth = useCallback(async () => {
-    // Only run on client side
-    if (typeof window === "undefined") {
-      setState((prev) => ({ ...prev, isLoading: false }));
-      return;
-    }
-
-    try {
-      setState((prev) => ({ ...prev, isLoading: true }));
-      await updateActor();
-    } catch (error) {
-      console.error("Failed to initialize auth:", error);
-    } finally {
-      setState((prev) => ({ ...prev, isLoading: false }));
-    }
-  }, [updateActor]);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [authClient, setAuthClient] = useState<AuthClient | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [principal, setPrincipal] = useState<Principal | null>(null);
+  const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    const initAuth = async () => {
+      try {
+        const client = await AuthClient.create({
+          idleOptions: {
+            disableIdle: true,
+            disableDefaultIdleCallback: true,
+          },
+        });
+
+        setAuthClient(client);
+
+        const isAuth = await client.isAuthenticated();
+
+        if (isAuth) {
+          const identity = client.getIdentity();
+          const userPrincipal = identity.getPrincipal();
+
+          setIsAuthenticated(true);
+          setPrincipal(userPrincipal);
+
+          await createActor(identity);
+        }
+      } catch (error) {
+        console.error("❌ Error initializing auth:", error);
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
+    };
+
+    initAuth();
+  }, []);
+
+  const createActor = async (identity: Identity) => {
+    try {
+      const agent = new HttpAgent({
+        identity,
+        host: "https://ic0.app",
+      });
+
+      const newActor = Actor.createActor<_SERVICE>(idlFactory, {
+        agent,
+        canisterId: CANISTER_ID,
+      });
+
+      setActor(newActor);
+
+      return newActor;
+    } catch (error) {
+      console.error("❌ Error creating actor:", error);
+      throw error;
+    }
+  };
 
   const login = async () => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+    if (!authClient) {
+      throw new Error("Auth client not initialized");
+    }
 
     try {
-      if (!state.authClient) {
-        throw new Error("Auth client not initialized");
-      }
+      setIsLoading(true);
 
-      await state.authClient.login({
-        identityProvider,
-        onSuccess: updateActor,
-        onError: (error) => {
-          console.error("Login failed:", error);
-        },
+      const identityProviderUrl = getIdentityProviderUrl();
+
+      await new Promise<void>((resolve, reject) => {
+        authClient.login({
+          identityProvider: identityProviderUrl,
+          maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
+          onSuccess: () => {
+            resolve();
+          },
+          onError: (error) => {
+            console.error("❌ Login failed:", error);
+            reject(error);
+          },
+        });
       });
+
+      const identity = authClient.getIdentity();
+      const userPrincipal = identity.getPrincipal();
+
+      setIsAuthenticated(true);
+      setPrincipal(userPrincipal);
+
+      await createActor(identity);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("❌ Login error:", error);
+      setIsAuthenticated(false);
+      setPrincipal(null);
+      setActor(null);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+    if (!authClient) return;
 
     try {
-      if (!state.authClient) {
-        throw new Error("Auth client not initialized");
-      }
+      await authClient.logout();
 
-      await state.authClient.logout();
-      await updateActor();
-
-      // Reset principal display
-      setState((prev) => ({
-        ...prev,
-        principal: 'Click "Whoami" to see your principal ID',
-      }));
+      setIsAuthenticated(false);
+      setPrincipal(null);
+      setActor(null);
     } catch (error) {
-      console.error("Logout error:", error);
-      throw error;
+      console.error("❌ Logout error:", error);
     }
   };
 
-  return {
-    // State
-    actor: state.actor,
-    authClient: state.authClient,
-    isAuthenticated: state.isAuthenticated,
-    principal: state.principal,
-    isLoading: state.isLoading,
-
-    // Actions
+  const value: AuthContextType = {
+    isAuthenticated,
+    principal,
+    actor,
     login,
     logout,
-    updateActor,
+    isLoading,
+    authClient,
+    isInitialized,
   };
+
+  return React.createElement(AuthContext.Provider, { value }, children);
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
