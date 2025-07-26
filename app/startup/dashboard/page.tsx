@@ -27,8 +27,13 @@ import {
   getMyProjects,
   getInvestorCountForProject,
   getMyFounderProfile,
+  getNFTCollectionsByProject,
 } from "@/service/api/plantifyService";
-import { Project, Founder } from "@/service/declarations/plantify-backend.did";
+import {
+  Project,
+  Founder,
+  NFTCollection,
+} from "@/service/declarations/plantify-backend.did";
 import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 export default function DashboardFounder() {
@@ -36,6 +41,10 @@ export default function DashboardFounder() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [investorCount, setInvestorCount] = useState<bigint>(BigInt(0));
+  const [nftCollection, setNftCollection] = useState<NFTCollection | null>(
+    null
+  );
+  const [nftLoading, setNftLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [founderProfile, setFounderProfile] = useState<Founder | null>();
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
@@ -107,6 +116,9 @@ export default function DashboardFounder() {
             myProjects[0].id
           );
           setInvestorCount(investors);
+
+          // Fetch NFT collection data
+          await fetchNFTCollection(myProjects[0].id);
         }
       } catch (error) {
         console.error("❌ Error fetching projects:", error);
@@ -118,6 +130,21 @@ export default function DashboardFounder() {
     fetchProjects();
   }, [actor, isAuthenticated, founderProfile]);
 
+  const fetchNFTCollection = async (projectId: string) => {
+    if (!actor) return;
+
+    try {
+      setNftLoading(true);
+      const collections = await getNFTCollectionsByProject(actor, projectId);
+      setNftCollection(collections[0] || null);
+    } catch (error) {
+      console.error("❌ Error fetching NFT collection:", error);
+      setNftCollection(null);
+    } finally {
+      setNftLoading(false);
+    }
+  };
+
   const calculateProgress = () => {
     if (!currentProject) return 0;
 
@@ -128,21 +155,36 @@ export default function DashboardFounder() {
     return Math.round((raised / goal) * 100);
   };
 
+  const calculateNFTsLeft = () => {
+    if (!nftCollection) return 0;
+
+    const maxSupply = Number(nftCollection.maxSupply);
+    const totalSupply = Number(nftCollection.totalSupply);
+
+    return Math.max(0, maxSupply - totalSupply);
+  };
+
   if (profileLoading || (!actor && isAuthenticated)) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
-        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
-          <div className="flex justify-center items-center p-10">
-            <Loader2 className="animate-spin text-white mr-2" size={24} />
-            <span className="text-white">
-              {profileLoading
-                ? "Verifying founder profile..."
-                : "Initializing connection..."}
-            </span>
-          </div>
-        </section>
-        <Footer />
+        <div className="fixed inset-0 z-0">
+          <DarkVeil />
+        </div>
+
+        <div className="relative z-10">
+          <Navbar />
+          <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 mx-auto max-w-6xl">
+            <div className="flex justify-center items-center p-10">
+              <Loader2 className="animate-spin text-white mr-2" size={24} />
+              <span className="text-white">
+                {profileLoading
+                  ? "Verifying founder profile..."
+                  : "Initializing connection..."}
+              </span>
+            </div>
+          </section>
+          <Footer />
+        </div>
       </div>
     );
   }
@@ -260,8 +302,8 @@ export default function DashboardFounder() {
             <div className="flex flex-col items-center justify-center p-8 bg-neutral-900 rounded-lg">
               <div className="text-white text-xl mb-4">No projects found.</div>
               <p className="text-neutral-400 mb-6 text-center">
-                You haven&apos;t created any projects yet. Start by creating your
-                first project.
+                You haven&apos;t created any projects yet. Start by creating
+                your first project.
               </p>
               <Button
                 onClick={() => (window.location.href = "/startup/create")}
@@ -288,7 +330,8 @@ export default function DashboardFounder() {
                     <BanknoteArrowUp />
                   </div>
                   <span className="text-white text-3xl">
-                    ${Number(currentProject.fundingRaised || 0).toLocaleString()}
+                    $
+                    {Number(currentProject.fundingRaised || 0).toLocaleString()}
                   </span>
                   <small className="text-neutral-500">
                     Of ${Number(currentProject.fundingGoal).toLocaleString()}{" "}
@@ -323,7 +366,18 @@ export default function DashboardFounder() {
                     <span className="text-white">NFT Left</span>
                     <Calendar />
                   </div>
-                  <span className="text-white text-3xl">23</span>
+                  <span className="text-white text-3xl">
+                    {nftLoading ? (
+                      <Loader2 className="animate-spin" size={24} />
+                    ) : (
+                      calculateNFTsLeft()
+                    )}
+                  </span>
+                  <small className="text-neutral-500">
+                    {nftCollection
+                      ? `Of ${Number(nftCollection.maxSupply)} total NFTs`
+                      : "Loading..."}
+                  </small>
                 </div>
               </div>
 
@@ -343,6 +397,9 @@ export default function DashboardFounder() {
                           selectedProject.id
                         );
                         setInvestorCount(investors);
+
+                        // Fetch NFT collection for the new project
+                        await fetchNFTCollection(selectedProject.id);
                       }
                     }}
                   >
@@ -373,7 +430,9 @@ export default function DashboardFounder() {
                 {activeTab === "Compliance" && (
                   <Compliance project={currentProject} />
                 )}
-                {activeTab === "Updates" && <Updates project={currentProject} />}
+                {activeTab === "Updates" && (
+                  <Updates project={currentProject} />
+                )}
                 {activeTab === "Profit Distribution" && (
                   <ProfitDistribution project={currentProject} />
                 )}
