@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 
 import { CircleCheckBig, ArrowRight } from "lucide-react";
 import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
+import { useRouter } from "next/navigation";
 
 export default function Register() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed inset-0 z-0">
@@ -61,6 +63,7 @@ export default function Register() {
               <div className="border border-dashed border-neutral-500"></div>
 
               <Button
+                onClick={() => router.push("/register/investor")}
                 iconRight={<ArrowRight />}
                 size="lg"
                 justify="center"
@@ -105,6 +108,7 @@ export default function Register() {
               <div className="border border-dashed border-neutral-500"></div>
 
               <Button
+                onClick={() => router.push("/register/founder")}  
                 iconRight={<ArrowRight />}
                 size="lg"
                 justify="center"
