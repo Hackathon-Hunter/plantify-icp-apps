@@ -14,7 +14,7 @@ interface SuccessCardProps {
 
 export default function SuccessCard({
   title = 'Ready to Launch?',
-  description = 'Once submitted, your campaign will enter our review process. You’ll receive updates via email.',
+  description = 'Once submitted, your startup will enter our review process. You’ll receive updates via email.',
   className,
   bgClass = 'bg-green-950',
   titleClass = 'text-green-300',

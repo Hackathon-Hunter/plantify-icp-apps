@@ -29,7 +29,7 @@ const ShimmerLoader = ({ className = "" }: { className?: string }) => (
 
 export default function DashboardInvestor() {
     const [activeTab, setActiveTab] = useState("Submit for Review")
-    const extraTabs = ["Submit for Review", "Failed Campaign", "Wallet Withdraw", "Activity Feed"]
+    const extraTabs = ["Submit for Review", "Failed Startup", "Wallet Withdraw", "Activity Feed"]
     const tabs = [...extraTabs]
     
     const [investments, setInvestments] = useState<Investment[]>([]);
@@ -209,7 +209,7 @@ export default function DashboardInvestor() {
                                 <SubmitForReview investments={investments} />
                             )}
 
-                            {activeTab === "Failed Campaign" && (
+                            {activeTab === "Failed Startup" && (
                                 <FailedCampaign />
                             )}
 

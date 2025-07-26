@@ -42,7 +42,7 @@ export default function ReviewSubmit({ prevStep, formData, handleSubmit }: StepC
 
             <div className="border border-dashed border-neutral-600"></div>
 
-            <span className="text-white text-xl">Campaign Summary</span>
+            <span className="text-white text-xl">Startup Summary</span>
 
             <div className="flex flex-col gap-2">
                 <div className="flex justify-between items-center">
@@ -86,7 +86,7 @@ export default function ReviewSubmit({ prevStep, formData, handleSubmit }: StepC
             <WarningCard
                 title="Before You Submit"
                 description={[
-                    "Your campaign will be review by our compliance team",
+                    "Your startup will be review by our compliance team",
                     "Review typically takes 3-5 business days",
                     "You'll be notified via email once approved",
                     "Make sure all information is accurate and complete"
@@ -95,7 +95,7 @@ export default function ReviewSubmit({ prevStep, formData, handleSubmit }: StepC
 
             <SuccessCard
                 title="Ready to Launch?"
-                description="Once submitted, your campaign will enter our review process. You'll receive updates via email."
+                description="Once submitted, your startup will enter our review process. You'll receive updates via email."
                 bgClass="bg-green-950"
                 titleClass="text-green-300"
                 descriptionClass="text-white/90"

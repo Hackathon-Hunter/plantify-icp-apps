@@ -481,7 +481,7 @@ const Checkout = () => {
                     <span className="text-white">Escrow</span>
                     <br />
                     Your funds are held in a smart contract escrow until the
-                    campaign closes.
+                    startup closes.
                   </p>
                 </div>
                 <div className="flex gap-2">

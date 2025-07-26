@@ -48,7 +48,7 @@ export const CardProduct: React.FC<CardProductProps> = ({
                 <div className="w-full h-48 relative">
                     <Image
                         src={imageUrl}
-                        alt={title || "Campaign image"}
+                        alt={title || "Startup image"}
                         fill
                         className="object-cover"
                         sizes="100vw"

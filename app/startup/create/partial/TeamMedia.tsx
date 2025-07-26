@@ -89,7 +89,7 @@ export default function TeamMedia({ nextStep, prevStep, formData, updateFormData
     return (
         <div className="bg-neutral-800 py-4 px-4 flex flex-col gap-2">
             <span className="text-xl text-white">Team & Media</span>
-            <span className="text-neutral-500">Introduce your team and upload campaign materials</span>
+            <span className="text-neutral-500">Introduce your team and upload startup materials</span>
 
             <div className="border border-dashed border-neutral-600"></div>
 

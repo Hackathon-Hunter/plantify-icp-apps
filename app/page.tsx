@@ -77,7 +77,7 @@ const LandingPage = () => {
       title: "Raise Capital, Build Community",
       description:
         "Use your fundraising page to showcase your product and vision. Set your terms, upload your pitch deck, and connect directly with investors.",
-      buttonText: "Create a Campaign",
+      buttonText: "Create a Startup",
       buttonIcon: <Search />,
       reverse: false,
     },
@@ -96,19 +96,19 @@ const LandingPage = () => {
     {
       imageUrl: "/assets/images/founder-1.png",
       description:
-        "7.5% commission only if your campaign succeeds",
+        "7.5% commission only if your startup succeeds",
       reverse: false,
     },
     {
       imageUrl: "/assets/images/founder-2.png",
       description:
-        "7.5% commission only if your campaign succeeds",
+        "7.5% commission only if your startup succeeds",
       reverse: true,
     },
     {
       imageUrl: "/assets/images/founder-3.png",
       description:
-        "7.5% commission only if your campaign succeeds",
+        "7.5% commission only if your startup succeeds",
       reverse: true,
     },
   ];
@@ -245,7 +245,7 @@ const LandingPage = () => {
             Compliance First, Always
           </h2>
           <p className="text-gray-300 mb-6 text-lg leading-relaxed">
-            Every campaign is reviewed to comply with{" "}
+            Every startup is reviewed to comply with{" "}
             <span className="text-white font-medium">crowdfunding regulations</span>.
             We verify startup status, check founders, and ensure honest disclosures.
           </p>

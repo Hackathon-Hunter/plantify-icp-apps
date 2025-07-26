@@ -31,7 +31,7 @@ export default function DashboardFounder() {
     const [investorCount, setInvestorCount] = useState<bigint>(BigInt(0));
     const [loading, setLoading] = useState<boolean>(true);
     
-    const extraTabs = ["Overview", "Campaign Editor", "Compliance", "Updates", "Profit Distribution", "Investors"];
+    const extraTabs = ["Overview", "Startup Editor", "Compliance", "Updates", "Profit Distribution", "Investors"];
     const tabs = [...extraTabs];
     const { actor, isAuthenticated } = useAuth();
 
@@ -217,7 +217,7 @@ export default function DashboardFounder() {
 
                         <div className="mt-6">
                             {activeTab === "Overview" && <Overview project={currentProject} />}
-                            {activeTab === "Campaign Editor" && <CampaignEditor project={currentProject} />}
+                            {activeTab === "Startup Editor" && <CampaignEditor project={currentProject} />}
                             {activeTab === "Compliance" && <Compliance project={currentProject} />}
                             {activeTab === "Updates" && <Updates project={currentProject} />}
                             {activeTab === "Profit Distribution" && <ProfitDistribution project={currentProject} />}

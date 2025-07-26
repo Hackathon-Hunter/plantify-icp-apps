@@ -12,7 +12,7 @@ export default function FailedCampaign() {
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-                <span className="text-white text-2xl">Failed Campaign</span>
+                <span className="text-white text-2xl">Failed Startup</span>
                 <span className="text-neutral-500">Campaigns that didn’t reach their funding goal-funds were refunded</span>
             </div>
 

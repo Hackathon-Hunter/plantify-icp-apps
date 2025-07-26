@@ -173,7 +173,7 @@ export default function SubmitForReview({ investments = [] }: SubmitForReviewPro
                                 <span className="text-white text-xl">{paperValue} ICP</span>
                             </div>
                             <div className="flex flex-col gap-2">
-                                <span className="text-neutral-400">Campaign Progress</span>
+                                <span className="text-neutral-400">Startup Progress</span>
                                 <span className="text-white text-xl">
                                     {project ? Math.min(
                                         Math.round((Number(project.fundingRaised) / Number(project.fundingGoal)) * 100),
