@@ -205,6 +205,7 @@ const LandingPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
                 <Button
+                  onClick={() => router.push("/investor/explore")}
                   iconLeft={<Search />}
                   size="lg"
                   className="bg-white text-black hover:bg-transparent hover:border hover:border-white hover:text-white text-lg px-8 py-4"
@@ -212,6 +213,7 @@ const LandingPage = () => {
                   Explore Startups
                 </Button>
                 <Button
+                  onClick={() => router.push("/register/founder")}
                   iconLeft={<BanknoteArrowUp />}
                   size="lg"
                   className="bg-transparent text-white text-lg px-8 py-4 hover:bg-white hover:text-black"
