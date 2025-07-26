@@ -1,6 +1,6 @@
 "use client";
 
-import React, { JSX } from "react";
+import React, { JSX, useState, useEffect } from "react";
 import { Formik, Field, ErrorMessage, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
@@ -9,8 +9,9 @@ import Navbar from "@/components/ui/Navbar";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import InternetIdentityModal from "@/components/ui/InternetIdentityModal";
 
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight, CheckCircle, Wallet, Loader2 } from "lucide-react";
 import { registerFounder } from "@/service/api/plantifyService";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -110,26 +111,54 @@ const FormInput: React.FC<FormInputProps> = ({
 );
 
 export default function RegisterFounder(): JSX.Element {
-  const { actor } = useAuth();
+  const { actor, isAuthenticated, login } = useAuth();
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
-  const handleRegisterFounder = async (
-    data: FounderFormValues
+  useEffect(() => {}, [isAuthenticated, actor]);
+
+  const handleWalletConnection = async (): Promise<boolean> => {
+    if (isAuthenticated && actor) {
+      return true;
+    }
+
+    try {
+      setIsConnecting(true);
+      setConnectionError(null);
+
+      await login();
+
+      setIsModalOpen(false);
+      return true;
+    } catch (error) {
+      console.error("❌ Wallet connection failed:", error);
+      setConnectionError(
+        "Failed to connect with Internet Identity. Please try again."
+      );
+      return false;
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleFormSubmission = async (
+    values: FounderFormValues
   ): Promise<{ success: boolean; message: string }> => {
-    if (!actor) {
+    if (!isAuthenticated || !actor) {
       return {
         success: false,
-        message: "You must connect internet identity first!",
+        message: "Please connect your wallet first to continue registration.",
       };
     }
 
     try {
-      // Map the form data to match the founder registration request format
       const founderRequest = {
-        fullName: data.fullName,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        governmentId: data.idNumber, // Map idNumber to governmentId
+        fullName: values.fullName,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
+        governmentId: values.idNumber,
       };
 
       const result = await registerFounder(actor, founderRequest);
@@ -137,9 +166,11 @@ export default function RegisterFounder(): JSX.Element {
       if ("ok" in result) {
         return { success: true, message: "Registration successful!" };
       } else {
+        console.error("❌ Founder registration failed:", result.err);
         throw new Error(`Registration failed: ${result.err}`);
       }
     } catch (error) {
+      console.error("❌ Registration error:", error);
       return {
         success: false,
         message:
@@ -155,13 +186,17 @@ export default function RegisterFounder(): JSX.Element {
     { setSubmitting, setStatus, resetForm }: FormikHelpers<FounderFormValues>
   ): Promise<void> => {
     try {
-      const result = await handleRegisterFounder(values);
+      if (!isAuthenticated || !actor) {
+        setIsModalOpen(true);
+        setSubmitting(false);
+        return;
+      }
+
+      const result = await handleFormSubmission(values);
 
       if (result.success) {
         setStatus({ type: "success", message: result.message } as FormStatus);
-
         resetForm();
-
         setTimeout(() => {
           router.push("/startup/dashboard");
         }, 2000);
@@ -169,13 +204,21 @@ export default function RegisterFounder(): JSX.Element {
         setStatus({ type: "error", message: result.message } as FormStatus);
       }
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("❌ Form submission error:", error);
       setStatus({
         type: "error",
         message: "An unexpected error occurred. Please try again.",
       } as FormStatus);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleConnectAndSubmit = async (formikSubmit: () => void) => {
+    if (!isAuthenticated || !actor) {
+      setIsModalOpen(true);
+    } else {
+      formikSubmit();
     }
   };
 
@@ -203,6 +246,22 @@ export default function RegisterFounder(): JSX.Element {
             handleSubmit: formikHandleSubmit,
           }) => (
             <div className="bg-neutral-800 p-4 flex flex-col gap-3">
+              {/* Connection Status */}
+              {!isAuthenticated && (
+                <div className="p-3 rounded text-sm flex items-center gap-2 bg-blue-900/50 text-blue-400 border border-blue-700">
+                  <Wallet size={16} className="text-blue-400" />
+                  <span>Connect your wallet to complete registration</span>
+                </div>
+              )}
+
+              {isAuthenticated && (
+                <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
+                  <CheckCircle size={16} className="text-green-400" />
+                  <span>Wallet connected successfully</span>
+                </div>
+              )}
+
+              {/* Form Status */}
               {status && (
                 <div
                   className={`p-3 rounded text-sm flex items-center gap-2 ${
@@ -220,6 +279,13 @@ export default function RegisterFounder(): JSX.Element {
                       Redirecting to dashboard...
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Connection Error */}
+              {connectionError && (
+                <div className="p-3 rounded text-sm flex items-center gap-2 bg-red-900/50 text-red-400 border border-red-700">
+                  <span>{connectionError}</span>
                 </div>
               )}
 
@@ -274,22 +340,41 @@ export default function RegisterFounder(): JSX.Element {
               {/* Submit Button */}
               <div className="flex justify-end">
                 <Button
-                  onClick={() => formikHandleSubmit()}
+                  onClick={() => handleConnectAndSubmit(formikHandleSubmit)}
                   disabled={
-                    isSubmitting || (status as FormStatus)?.type === "success"
+                    isSubmitting ||
+                    isConnecting ||
+                    (status as FormStatus)?.type === "success"
                   }
-                  iconRight={<ArrowRight />}
+                  iconRight={
+                    isConnecting ? (
+                      <Loader2 className="animate-spin" size={16} />
+                    ) : (
+                      <ArrowRight />
+                    )
+                  }
+                  iconLeft={
+                    !isAuthenticated && !isConnecting ? (
+                      <Wallet size={16} />
+                    ) : undefined
+                  }
                   size="lg"
                   className={`text-sm px-4 py-4 w-fit transition-all duration-200 ${
-                    isSubmitting || (status as FormStatus)?.type === "success"
+                    isSubmitting ||
+                    isConnecting ||
+                    (status as FormStatus)?.type === "success"
                       ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                       : "bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white"
                   }`}
                 >
-                  {isSubmitting
+                  {isConnecting
+                    ? "Connecting Wallet..."
+                    : isSubmitting
                     ? "Signing Up..."
                     : (status as FormStatus)?.type === "success"
                     ? "Redirecting..."
+                    : !isAuthenticated
+                    ? "Connect Wallet & Sign Up"
                     : "Sign Up"}
                 </Button>
               </div>
@@ -329,6 +414,57 @@ export default function RegisterFounder(): JSX.Element {
             </div>
           )}
         </Formik>
+
+        {/* Internet Identity Modal */}
+        <InternetIdentityModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setConnectionError(null);
+          }}
+          title="Connect Your Wallet"
+          subtitle="Connect with Internet Identity to register as a founder"
+          buttons={[
+            {
+              text: isConnecting
+                ? "Connecting..."
+                : "Connect with Internet Identity",
+              onClick: async () => {
+                await handleWalletConnection();
+              },
+              variant: "primary" as const,
+              icon: isConnecting ? Loader2 : undefined,
+              disabled: isConnecting,
+            },
+            {
+              text: "Cancel",
+              onClick: () => {
+                setIsModalOpen(false);
+                setConnectionError(null);
+              },
+              variant: "secondary" as const,
+              disabled: isConnecting,
+            },
+          ]}
+          showFeatures={true}
+          features={[
+            {
+              icon: Wallet,
+              text: "Secure blockchain-based authentication",
+              iconColor: "text-white",
+            },
+            {
+              icon: CheckCircle,
+              text: "No usernames or passwords required",
+              iconColor: "text-white",
+            },
+            {
+              icon: ArrowRight,
+              text: "One-click registration process",
+              iconColor: "text-white",
+            },
+          ]}
+        />
       </section>
     </div>
   );
