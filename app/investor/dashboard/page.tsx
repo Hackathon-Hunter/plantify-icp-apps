@@ -7,7 +7,7 @@ import Footer from "@/components/ui/Footer";
 import Tabs from "@/components/ui/Tabs";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 
-import SubmitForReview from "./partial/SubmitForReview";
+import SubmitForReview from "./partial/ActiveInvestment";
 import FailedCampaign from "./partial/FailedCampaign";
 import WalletWithdraw from "./partial/WalletWithdraw";
 import ActivityFeed from "./partial/ActivityFeed";

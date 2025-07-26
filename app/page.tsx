@@ -36,7 +36,7 @@ const LandingPage = () => {
 
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [investment, setInvestment] = useState<number | string>('');
-  const [period, setPeriod] = useState(5);
+  const [period, _setPeriod] = useState(5);
   const [yieldType, setYieldType] = useState<'last' | 'average'>('last');
   const [autoReinvest, setAutoReinvest] = useState(false);
   const [plan, setPlan] = useState<'one-time' | 'monthly'>('one-time');
