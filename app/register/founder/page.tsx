@@ -24,6 +24,7 @@ import {
 } from "@/service/api/plantifyService";
 import { useAuth } from "@/hooks/useAuth";
 import type { Founder } from "@/service/declarations/plantify-backend.did";
+import DarkVeil from "@/components/ui/DarkVeil/DarkVeil";
 
 interface FounderFormValues {
   fullName: string;
@@ -137,7 +138,7 @@ export default function RegisterFounder(): JSX.Element {
       try {
         const profile = await getMyFounderProfile(actor);
         console.log(profile);
-        
+
         if (profile) {
           setExistingFounder(profile);
         } else {
@@ -270,365 +271,372 @@ export default function RegisterFounder(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="min-h-screen bg-background relative">
+      {/* DarkVeil as background - positioned absolutely to cover entire viewport */}
+      <div className="fixed inset-0 z-0">
+        <DarkVeil />
+      </div>
 
-      <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto">
-        <Breadcrumbs segments={[{ label: "Back to Home" }]} backLink="/" />
+      {/* Main content wrapper with relative positioning to appear above DarkVeil */}
+      <div className="relative z-10">
+        <Navbar />
 
-        <span className="text-white text-3xl my-4 font-semibold">
-          Sign Up as Founder
-        </span>
+        <section className="flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-6xl mx-auto">
+          <Breadcrumbs segments={[{ label: "Back to Home" }]} backLink="/" />
 
-        <Formik<FounderFormValues>
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-        >
-          {({
-            isSubmitting,
-            status,
-            errors,
-            touched,
-            handleSubmit: formikHandleSubmit,
-          }) => (
-            <div className="bg-neutral-800 p-4 flex flex-col gap-3">
-              {/* Loading Profile Check */}
-              {isCheckingProfile && (
-                <div className="p-3 rounded text-sm flex items-center gap-2 bg-neutral-700 text-neutral-300 border border-neutral-600">
-                  <Loader2
-                    size={16}
-                    className="animate-spin text-neutral-300"
-                  />
-                  <span>Checking your profile...</span>
-                </div>
-              )}
+          <span className="text-white text-3xl my-4 font-semibold">
+            Sign Up as Founder
+          </span>
 
-              {/* Existing Founder Alert */}
-              {existingFounder && !isCheckingProfile && (
-                <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
-                  <UserCheck size={16} className="text-green-400" />
-                  <div className="flex flex-col">
-                    <span>Welcome back, {existingFounder.fullName}!</span>
-                    <span className="text-green-300 text-xs">
-                      You are already registered as a founder.
+          <Formik<FounderFormValues>
+            initialValues={initialValues}
+            validationSchema={validationSchema}
+            onSubmit={handleSubmit}
+          >
+            {({
+              isSubmitting,
+              status,
+              errors,
+              touched,
+              handleSubmit: formikHandleSubmit,
+            }) => (
+              <div className="bg-neutral-800 p-4 flex flex-col gap-3">
+                {/* Loading Profile Check */}
+                {isCheckingProfile && (
+                  <div className="p-3 rounded text-sm flex items-center gap-2 bg-neutral-700 text-neutral-300 border border-neutral-600">
+                    <Loader2
+                      size={16}
+                      className="animate-spin text-neutral-300"
+                    />
+                    <span>Checking your profile...</span>
+                  </div>
+                )}
+
+                {/* Existing Founder Alert */}
+                {existingFounder && !isCheckingProfile && (
+                  <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
+                    <UserCheck size={16} className="text-green-400" />
+                    <div className="flex flex-col">
+                      <span>Welcome back, {existingFounder.fullName}!</span>
+                      <span className="text-green-300 text-xs">
+                        You are already registered as a founder.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Connection Status */}
+                {!isAuthenticated && (
+                  <div className="p-3 rounded text-sm flex items-center gap-2 bg-blue-900/50 text-blue-400 border border-blue-700">
+                    <Wallet size={16} className="text-blue-400" />
+                    <span>
+                      Connect your wallet to check your registration status
                     </span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Connection Status */}
-              {!isAuthenticated && (
-                <div className="p-3 rounded text-sm flex items-center gap-2 bg-blue-900/50 text-blue-400 border border-blue-700">
-                  <Wallet size={16} className="text-blue-400" />
-                  <span>
-                    Connect your wallet to check your registration status
-                  </span>
-                </div>
-              )}
-
-              {isAuthenticated && !existingFounder && !isCheckingProfile && (
-                <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
-                  <CheckCircle size={16} className="text-green-400" />
-                  <span>Wallet connected successfully - Ready to register</span>
-                </div>
-              )}
-
-              {/* Form Status */}
-              {status && (
-                <div
-                  className={`p-3 rounded text-sm flex items-center gap-2 ${
-                    (status as FormStatus).type === "success"
-                      ? "bg-green-900/50 text-green-400 border border-green-700"
-                      : "bg-red-900/50 text-red-400 border border-red-700"
-                  }`}
-                >
-                  {(status as FormStatus).type === "success" && (
+                {isAuthenticated && !existingFounder && !isCheckingProfile && (
+                  <div className="p-3 rounded text-sm flex items-center gap-2 bg-green-900/50 text-green-400 border border-green-700">
                     <CheckCircle size={16} className="text-green-400" />
-                  )}
-                  <span>{(status as FormStatus).message}</span>
-                  {(status as FormStatus).type === "success" && (
-                    <span className="text-green-300 text-xs ml-auto">
-                      Redirecting to dashboard...
+                    <span>
+                      Wallet connected successfully - Ready to register
                     </span>
-                  )}
-                </div>
-              )}
-
-              {/* Connection Error */}
-              {connectionError && (
-                <div className="p-3 rounded text-sm flex items-center gap-2 bg-red-900/50 text-red-400 border border-red-700">
-                  <span>{connectionError}</span>
-                </div>
-              )}
-
-              {/* Form Fields - Hidden if already registered */}
-              {!existingFounder && (
-                <>
-                  {/* Full Name Field */}
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-white">
-                      Full Name <span className="text-red-500">*</span>
-                    </label>
-                    <FormInput
-                      name="fullName"
-                      placeholder="Enter your full name here"
-                    />
                   </div>
+                )}
 
-                  {/* Email Field */}
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-white">
-                      Email <span className="text-red-500">*</span>
-                    </label>
-                    <FormInput
-                      name="email"
-                      type="email"
-                      placeholder="Enter your email here"
-                    />
-                  </div>
-
-                  {/* ID Number Field */}
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-white">
-                      ID Number <span className="text-red-500">*</span>
-                    </label>
-                    <FormInput
-                      name="idNumber"
-                      placeholder="Enter your ID number here"
-                    />
-                  </div>
-
-                  {/* Phone Number Field */}
-                  <div className="flex flex-col gap-2 w-full">
-                    <label className="text-white">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <FormInput
-                      name="phoneNumber"
-                      type="tel"
-                      placeholder="Enter your phone number here"
-                    />
-                  </div>
-                </>
-              )}
-
-              {/* Existing Founder Info Display */}
-              {existingFounder && (
-                <div className="bg-neutral-700 p-4 rounded">
-                  <h3 className="text-white text-lg font-semibold mb-3">
-                    Your Founder Profile
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Name:</span>
-                      <span className="text-white">
-                        {existingFounder.fullName}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Email:</span>
-                      <span className="text-white">
-                        {existingFounder.email}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Phone:</span>
-                      <span className="text-white">
-                        {existingFounder.phoneNumber}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Government ID:</span>
-                      <span className="text-white">
-                        {existingFounder.governmentId}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Registered:</span>
-                      <span className="text-white">
-                        {new Date(
-                          Number(existingFounder.registrationDate)
-                        ).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-neutral-400">Status:</span>
-                      <span
-                        className={
-                          existingFounder.isVerified
-                            ? "text-green-400"
-                            : "text-yellow-400"
-                        }
-                      >
-                        {existingFounder.isVerified
-                          ? "Verified"
-                          : "Pending Verification"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="border border-dashed border-neutral-500"></div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => handleConnectAndSubmit(formikHandleSubmit)}
-                  disabled={
-                    isSubmitting ||
-                    isConnecting ||
-                    isCheckingProfile ||
-                    (status as FormStatus)?.type === "success"
-                  }
-                  iconRight={
-                    isConnecting || isCheckingProfile ? (
-                      <Loader2 className="animate-spin" size={16} />
-                    ) : existingFounder ? (
-                      <ArrowRight />
-                    ) : (
-                      <ArrowRight />
-                    )
-                  }
-                  iconLeft={
-                    !isAuthenticated && !isConnecting ? (
-                      <Wallet size={16} />
-                    ) : existingFounder ? (
-                      <UserCheck size={16} />
-                    ) : undefined
-                  }
-                  size="lg"
-                  className={`text-sm px-4 py-4 w-fit transition-all duration-200 ${
-                    isSubmitting ||
-                    isConnecting ||
-                    isCheckingProfile ||
-                    (status as FormStatus)?.type === "success"
-                      ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
-                      : "bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white"
-                  }`}
-                >
-                  {isCheckingProfile
-                    ? "Checking Profile..."
-                    : isConnecting
-                    ? "Connecting Wallet..."
-                    : isSubmitting
-                    ? "Signing Up..."
-                    : (status as FormStatus)?.type === "success"
-                    ? "Redirecting..."
-                    : existingFounder
-                    ? "Go to Dashboard"
-                    : !isAuthenticated
-                    ? "Connect Wallet & Sign Up"
-                    : "Sign Up"}
-                </Button>
-              </div>
-
-              {/* Alternative: Manual Dashboard Navigation for existing founders */}
-              {existingFounder && (
-                <div className="flex justify-center">
-                  <Button
-                    onClick={() => router.push("/startup/dashboard")}
-                    variant="outline"
-                    className="text-green-400 border-green-400 hover:bg-green-900/20 text-sm"
+                {/* Form Status */}
+                {status && (
+                  <div
+                    className={`p-3 rounded text-sm flex items-center gap-2 ${
+                      (status as FormStatus).type === "success"
+                        ? "bg-green-900/50 text-green-400 border border-green-700"
+                        : "bg-red-900/50 text-red-400 border border-red-700"
+                    }`}
                   >
-                    Continue to Startup Dashboard
+                    {(status as FormStatus).type === "success" && (
+                      <CheckCircle size={16} className="text-green-400" />
+                    )}
+                    <span>{(status as FormStatus).message}</span>
+                    {(status as FormStatus).type === "success" && (
+                      <span className="text-green-300 text-xs ml-auto">
+                        Redirecting to dashboard...
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Connection Error */}
+                {connectionError && (
+                  <div className="p-3 rounded text-sm flex items-center gap-2 bg-red-900/50 text-red-400 border border-red-700">
+                    <span>{connectionError}</span>
+                  </div>
+                )}
+
+                {/* Form Fields - Hidden if already registered */}
+                {!existingFounder && (
+                  <>
+                    {/* Full Name Field */}
+                    <div className="flex flex-col gap-2 w-full">
+                      <label className="text-white">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <FormInput
+                        name="fullName"
+                        placeholder="Enter your full name here"
+                      />
+                    </div>
+
+                    {/* Email Field */}
+                    <div className="flex flex-col gap-2 w-full">
+                      <label className="text-white">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <FormInput
+                        name="email"
+                        type="email"
+                        placeholder="Enter your email here"
+                      />
+                    </div>
+
+                    {/* ID Number Field */}
+                    <div className="flex flex-col gap-2 w-full">
+                      <label className="text-white">
+                        ID Number <span className="text-red-500">*</span>
+                      </label>
+                      <FormInput
+                        name="idNumber"
+                        placeholder="Enter your ID number here"
+                      />
+                    </div>
+
+                    {/* Phone Number Field */}
+                    <div className="flex flex-col gap-2 w-full">
+                      <label className="text-white">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <FormInput
+                        name="phoneNumber"
+                        type="tel"
+                        placeholder="Enter your phone number here"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Existing Founder Info Display */}
+                {existingFounder && (
+                  <div className="bg-neutral-700 p-4 rounded">
+                    <h3 className="text-white text-lg font-semibold mb-3">
+                      Your Founder Profile
+                    </h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Name:</span>
+                        <span className="text-white">
+                          {existingFounder.fullName}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Email:</span>
+                        <span className="text-white">
+                          {existingFounder.email}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Phone:</span>
+                        <span className="text-white">
+                          {existingFounder.phoneNumber}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Government ID:</span>
+                        <span className="text-white">
+                          {existingFounder.governmentId}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Registered:</span>
+                        <span className="text-white">
+                          {new Date(
+                            Number(existingFounder.registrationDate)
+                          ).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-neutral-400">Status:</span>
+                        <span
+                          className={
+                            existingFounder.isVerified
+                              ? "text-green-400"
+                              : "text-yellow-400"
+                          }
+                        >
+                          {existingFounder.isVerified
+                            ? "Verified"
+                            : "Pending Verification"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="border border-dashed border-neutral-500"></div>
+
+                {/* Submit Button */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleConnectAndSubmit(formikHandleSubmit)}
+                    disabled={
+                      isSubmitting ||
+                      isConnecting ||
+                      isCheckingProfile ||
+                      (status as FormStatus)?.type === "success"
+                    }
+                    iconRight={
+                      isConnecting || isCheckingProfile ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : existingFounder ? (
+                        <ArrowRight />
+                      ) : (
+                        <ArrowRight />
+                      )
+                    }
+                    iconLeft={
+                      !isAuthenticated && !isConnecting ? (
+                        <Wallet size={16} />
+                      ) : existingFounder ? (
+                        <UserCheck size={16} />
+                      ) : undefined
+                    }
+                    size="lg"
+                    className={`text-sm px-4 py-4 w-fit transition-all duration-200 ${
+                      isSubmitting ||
+                      isConnecting ||
+                      isCheckingProfile ||
+                      (status as FormStatus)?.type === "success"
+                        ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
+                        : "bg-white text-black hover:bg-transparent hover:text-white hover:border hover:border-white"
+                    }`}
+                  >
+                    {isCheckingProfile
+                      ? "Checking Profile..."
+                      : isConnecting
+                      ? "Connecting Wallet..."
+                      : isSubmitting
+                      ? "Signing Up..."
+                      : (status as FormStatus)?.type === "success"
+                      ? "Redirecting..."
+                      : existingFounder
+                      ? "Go to Dashboard"
+                      : !isAuthenticated
+                      ? "Connect Wallet & Sign Up"
+                      : "Sign Up"}
                   </Button>
                 </div>
-              )}
 
-              {/* Alternative: Manual Dashboard Navigation */}
-              {(status as FormStatus)?.type === "success" &&
-                !existingFounder && (
+                {/* Alternative: Manual Dashboard Navigation for existing founders */}
+                {existingFounder && (
                   <div className="flex justify-center">
                     <Button
                       onClick={() => router.push("/startup/dashboard")}
                       variant="outline"
                       className="text-green-400 border-green-400 hover:bg-green-900/20 text-sm"
                     >
-                      Go to Dashboard Now
+                      Continue to Startup Dashboard
                     </Button>
                   </div>
                 )}
 
-              {/* Form Summary for Development */}
-              {process.env.NODE_ENV === "development" && (
-                <div className="mt-4 p-3 bg-neutral-900 rounded text-xs">
-                  <details>
-                    <summary className="text-neutral-400 cursor-pointer">
-                      Debug Info (Development Only)
-                    </summary>
-                    <div className="mt-2 text-neutral-300">
-                      <p>Errors: {JSON.stringify(errors, null, 2)}</p>
-                      <p>Touched: {JSON.stringify(touched, null, 2)}</p>
-                      <p>
-                        Form Values: {JSON.stringify(initialValues, null, 2)}
-                      </p>
-                      <p>Is Submitting: {isSubmitting.toString()}</p>
-                      <p>Status: {JSON.stringify(status, null, 2)}</p>
-                      <p>
-                        Existing Founder:{" "}
-                        {existingFounder?.fullName}
-                      </p>
+                {/* Alternative: Manual Dashboard Navigation */}
+                {(status as FormStatus)?.type === "success" &&
+                  !existingFounder && (
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={() => router.push("/startup/dashboard")}
+                        variant="outline"
+                        className="text-green-400 border-green-400 hover:bg-green-900/20 text-sm"
+                      >
+                        Go to Dashboard Now
+                      </Button>
                     </div>
-                  </details>
-                </div>
-              )}
-            </div>
-          )}
-        </Formik>
+                  )}
 
-        {/* Internet Identity Modal */}
-        <InternetIdentityModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setConnectionError(null);
-          }}
-          title="Connect Your Wallet"
-          subtitle="Connect with Internet Identity to register as a founder"
-          buttons={[
-            {
-              text: isConnecting
-                ? "Connecting..."
-                : "Connect with Internet Identity",
-              onClick: async () => {
-                await handleWalletConnection();
+                {/* Form Summary for Development */}
+                {process.env.NODE_ENV === "development" && (
+                  <div className="mt-4 p-3 bg-neutral-900 rounded text-xs">
+                    <details>
+                      <summary className="text-neutral-400 cursor-pointer">
+                        Debug Info (Development Only)
+                      </summary>
+                      <div className="mt-2 text-neutral-300">
+                        <p>Errors: {JSON.stringify(errors, null, 2)}</p>
+                        <p>Touched: {JSON.stringify(touched, null, 2)}</p>
+                        <p>
+                          Form Values: {JSON.stringify(initialValues, null, 2)}
+                        </p>
+                        <p>Is Submitting: {isSubmitting.toString()}</p>
+                        <p>Status: {JSON.stringify(status, null, 2)}</p>
+                        <p>Existing Founder: {existingFounder?.fullName}</p>
+                      </div>
+                    </details>
+                  </div>
+                )}
+              </div>
+            )}
+          </Formik>
+
+          {/* Internet Identity Modal */}
+          <InternetIdentityModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setConnectionError(null);
+            }}
+            title="Connect Your Wallet"
+            subtitle="Connect with Internet Identity to register as a founder"
+            buttons={[
+              {
+                text: isConnecting
+                  ? "Connecting..."
+                  : "Connect with Internet Identity",
+                onClick: async () => {
+                  await handleWalletConnection();
+                },
+                variant: "primary" as const,
+                icon: isConnecting ? Loader2 : undefined,
+                disabled: isConnecting,
               },
-              variant: "primary" as const,
-              icon: isConnecting ? Loader2 : undefined,
-              disabled: isConnecting,
-            },
-            {
-              text: "Cancel",
-              onClick: () => {
-                setIsModalOpen(false);
-                setConnectionError(null);
+              {
+                text: "Cancel",
+                onClick: () => {
+                  setIsModalOpen(false);
+                  setConnectionError(null);
+                },
+                variant: "secondary" as const,
+                disabled: isConnecting,
               },
-              variant: "secondary" as const,
-              disabled: isConnecting,
-            },
-          ]}
-          showFeatures={true}
-          features={[
-            {
-              icon: Wallet,
-              text: "Secure blockchain-based authentication",
-              iconColor: "text-white",
-            },
-            {
-              icon: CheckCircle,
-              text: "No usernames or passwords required",
-              iconColor: "text-white",
-            },
-            {
-              icon: ArrowRight,
-              text: "One-click registration process",
-              iconColor: "text-white",
-            },
-          ]}
-        />
-      </section>
+            ]}
+            showFeatures={true}
+            features={[
+              {
+                icon: Wallet,
+                text: "Secure blockchain-based authentication",
+                iconColor: "text-white",
+              },
+              {
+                icon: CheckCircle,
+                text: "No usernames or passwords required",
+                iconColor: "text-white",
+              },
+              {
+                icon: ArrowRight,
+                text: "One-click registration process",
+                iconColor: "text-white",
+              },
+            ]}
+          />
+        </section>
+      </div>
     </div>
   );
 }
