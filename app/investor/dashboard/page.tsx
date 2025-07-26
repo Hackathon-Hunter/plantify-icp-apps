@@ -243,20 +243,22 @@ export default function DashboardInvestor() {
 
   // Initial data fetch
   useEffect(() => {
-    if (isAuthenticated && actor) {
+    if (isAuthenticated === null) {
+      // Still checking auth state, do nothing
+      return;
+    }
+
+    if (isAuthenticated === false) {
+      // Definitely not authenticated
+      // router.push("/login");
+      return;
+    }
+
+    if (isAuthenticated === true && actor) {
+      // Authenticated and ready to fetch data
       fetchInvestmentData();
-    } else if (isAuthenticated === false) {
-      // User is not authenticated, redirect to login
-      router.push("/login");
     }
   }, [actor, isAuthenticated, router]);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (isAuthenticated === false) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, router]);
 
   // Retry function for error state
   const handleRetry = () => {
@@ -410,7 +412,9 @@ export default function DashboardInvestor() {
                     <span className="text-white text-sm">
                       <span
                         className={
-                          portfolioReturn >= 0 ? "text-green-500" : "text-red-500"
+                          portfolioReturn >= 0
+                            ? "text-green-500"
+                            : "text-red-500"
                         }
                       >
                         {portfolioReturn >= 0 ? "+" : ""}
@@ -437,8 +441,8 @@ export default function DashboardInvestor() {
                 {activeTab === "Active Investments" && (
                   <SubmitForReview
                     investments={investments}
-                  //   investmentSummaries={investmentSummaries}
-                  //   onRefresh={fetchInvestmentData}
+                    //   investmentSummaries={investmentSummaries}
+                    //   onRefresh={fetchInvestmentData}
                   />
                 )}
 
@@ -449,7 +453,7 @@ export default function DashboardInvestor() {
                 {activeTab === "Activity Feed" && (
                   <ActivityFeed
                     investments={investments}
-                  //   onRefresh={fetchInvestmentData}
+                    //   onRefresh={fetchInvestmentData}
                   />
                 )}
               </div>
