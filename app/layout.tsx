@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "Plantify - Invest in the Future",
   description:
     "Unlock access to high-growth startups using blockchain-powered equity",
+  icons: {
+    icon: "/assets/logo/favicon.png",
+  },
 };
 
 export default function RootLayout({
