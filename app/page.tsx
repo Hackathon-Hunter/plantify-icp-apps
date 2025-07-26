@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image"
 
@@ -17,6 +17,7 @@ import Navbar from "@/components/ui/Navbar";
 import { IcpLogo } from "@/components/icons";
 
 import { calculateProjectedIncome } from '@/utils/returnCalculator';
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   ChevronDown,
@@ -32,7 +33,21 @@ const INDUSTRY_PRICING: Record<string, number> = {
 };
 
 const LandingPage = () => {
-  const router = useRouter()
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace("/investor/dashboard");
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Section refs for smooth scroll
+  const exploreRef = useRef<HTMLDivElement | null>(null);
+  const howItWorksRef = useRef<HTMLDivElement | null>(null);
+  const raiseCapitalRef = useRef<HTMLDivElement | null>(null);
+  const secondaryMarketRef = useRef<HTMLDivElement | null>(null);
 
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [investment, setInvestment] = useState<number | string>('');
@@ -43,6 +58,12 @@ const LandingPage = () => {
   const [projected, setProjected] = useState({ totalReturn: '0', totalAsset: '0' });
   const [value, setValue] = useState(30);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleScroll = (ref: React.RefObject<HTMLDivElement | null>) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseInt(e.target.value);
@@ -179,10 +200,15 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <Navbar />
+      <Navbar
+        onScrollExplore={() => handleScroll(exploreRef)}
+        onScrollHowItWorks={() => handleScroll(howItWorksRef)}
+        onScrollRaiseCapital={() => handleScroll(raiseCapitalRef)}
+        onScrollSecondaryMarket={() => handleScroll(secondaryMarketRef)}
+      />
 
       {/* Hero Section */}
-      <section className="relative pt-36 sm:pt-44 md:pt-56 lg:pt-64 pb-0 md:pb-24 bg-black">
+      <section ref={exploreRef} className="relative pt-36 sm:pt-44 md:pt-56 lg:pt-64 pb-0 md:pb-24 bg-black">
         <div className="max-w-7xl px-4 mx-auto text-center lg:px-64">
           {isLoading ? (
             <div className="animate-pulse space-y-4">
@@ -258,7 +284,7 @@ const LandingPage = () => {
       </section>
 
       {/* Section 2 */}
-      <section className="py-32 sm:py-44 md:py-56 lg:py-64 sm:px-12 lg:px-64 bg-black">
+      <section ref={howItWorksRef} className="py-32 sm:py-44 md:py-56 lg:py-64 sm:px-12 lg:px-64 bg-black">
         <div className="max-w-7xl mx-auto w-full px-4">
           {isLoading ? (
             <div className="flex flex-col gap-6 items-center text-center animate-pulse">
@@ -289,7 +315,7 @@ const LandingPage = () => {
       </section>
 
       {/* Startup list */}
-      <section className="py-12 lg:pb-32 lg:py-0 px-4 sm:px-6 lg:px-44 bg-black text-white">
+      <section ref={raiseCapitalRef} className="py-12 lg:pb-32 lg:py-0 px-4 sm:px-6 lg:px-44 bg-black text-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col text-center md:text-left mb-12 md:mb-16 gap-6">
             {isLoading ? (
@@ -334,20 +360,7 @@ const LandingPage = () => {
                 buttonText="View Detail"
                 buttonIcon={<Search />}
                 rightBadge={
-                  <BadgeWarning
-                    text={(() => {
-                      if (item.targetDate && item.targetDate[0]) {
-                        const now = Date.now();
-                        const target = Number(item.targetDate[0]) / 1_000_000;
-                        const days = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
-                        return `${days} days left`;
-                      }
-                      return "-";
-                    })()}
-                    icon={<Clock size={15} />}
-                    iconPosition="left"
-                  />
-                }
+                  ""}
                 leftBadge={
                   <BadgeMuted
                     text={(() => {
@@ -370,7 +383,7 @@ const LandingPage = () => {
       </section>
 
       {/* Who Plantfy Section */}
-      <section className="py-12 lg:py-20 px-4 sm:px-6 lg:px-44 bg-black text-white">
+      <section ref={secondaryMarketRef} className="py-12 lg:py-20 px-4 sm:px-6 lg:px-44 bg-black text-white">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between md:items-start text-center md:text-left mb-12 md:mb-16 gap-6">
             {isLoading ? (

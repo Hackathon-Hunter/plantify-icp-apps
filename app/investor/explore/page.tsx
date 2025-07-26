@@ -102,20 +102,7 @@ const Explore = () => {
                   buttonText="View Detail"
                   buttonIcon={<Search size={15} />}
                   rightBadge={
-                    <BadgeWarning
-                      text={(() => {
-                        const item = filteredProjects[0];
-                        if (item.targetDate && item.targetDate[0]) {
-                          const now = Date.now();
-                          const target = Number(item.targetDate[0]) / 1_000_000;
-                          const days = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
-                          return `${days} days left`;
-                        }
-                        return "-";
-                      })()}
-                      icon={<Clock size={15} />}
-                      iconPosition="left"
-                    />
+                    ""
                   }
                   leftBadge={
                     <BadgeMuted
@@ -227,16 +214,7 @@ const Explore = () => {
                   description={item.companyTagline}
                   buttonText="View Detail"
                   buttonIcon={<Search />}
-                  rightBadge={<BadgeWarning text={(() => {
-                    // Calculate days left if targetDate exists
-                    if (item.targetDate && item.targetDate[0]) {
-                      const now = Date.now();
-                      const target = Number(item.targetDate[0]) / 1_000_000;
-                      const days = Math.max(0, Math.ceil((target - now) / (1000 * 60 * 60 * 24)));
-                      return `${days} days left`;
-                    }
-                    return "-";
-                  })()} icon={<Clock size={15} />} iconPosition="left" />}
+                  rightBadge={""}
                   leftBadge={<BadgeMuted text={(() => {
                     if (typeof item.industry === "object") {
                       return Object.keys(item.industry)[0];

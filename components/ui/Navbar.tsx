@@ -17,7 +17,17 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePathname } from "next/navigation";
 import { getMyICPBalance } from "@/service/api/plantifyService";
 
-const Navbar = () => {
+const Navbar = ({
+  onScrollExplore,
+  onScrollHowItWorks,
+  onScrollRaiseCapital,
+  onScrollSecondaryMarket,
+}: {
+  onScrollExplore?: () => void;
+  onScrollHowItWorks?: () => void;
+  onScrollRaiseCapital?: () => void;
+  onScrollSecondaryMarket?: () => void;
+} = {}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [icpBalance, setIcpBalance] = useState<string>("0.00");
@@ -201,18 +211,10 @@ const Navbar = () => {
             {/* Navigation Links - Hidden when authenticated */}
             {isHomePage && (
               <div className="hidden md:flex items-center space-x-8">
-                <a href="#" className="text-white hover:text-gray-500">
-                  Explore
-                </a>
-                <a href="#" className="text-white hover:text-gray-500">
-                  How it Works
-                </a>
-                <a href="#" className="text-white hover:text-gray-500">
-                  Raise Capital
-                </a>
-                <a href="#" className="text-white hover:text-gray-500">
-                  Secondary Market
-                </a>
+                <button onClick={onScrollExplore} className="text-white hover:text-gray-500 bg-transparent border-none outline-none cursor-pointer">Explore</button>
+                <button onClick={onScrollHowItWorks} className="text-white hover:text-gray-500 bg-transparent border-none outline-none cursor-pointer">How it Works</button>
+                <button onClick={onScrollRaiseCapital} className="text-white hover:text-gray-500 bg-transparent border-none outline-none cursor-pointer">Raise Capital</button>
+                <button onClick={onScrollSecondaryMarket} className="text-white hover:text-gray-500 bg-transparent border-none outline-none cursor-pointer">Secondary Market</button>
               </div>
             )}
 
@@ -343,18 +345,10 @@ const Navbar = () => {
               <div className="flex flex-col space-y-4 mt-4">
                 {!isAuthenticated && (
                   <>
-                    <a href="#" className="text-white">
-                      Explore
-                    </a>
-                    <a href="#" className="text-white">
-                      How it Works
-                    </a>
-                    <a href="#" className="text-white">
-                      Raise Capital
-                    </a>
-                    <a href="#" className="text-white">
-                      Secondary Market
-                    </a>
+                    <button onClick={onScrollExplore} className="text-white text-left bg-transparent border-none outline-none cursor-pointer">Explore</button>
+                    <button onClick={onScrollHowItWorks} className="text-white text-left bg-transparent border-none outline-none cursor-pointer">How it Works</button>
+                    <button onClick={onScrollRaiseCapital} className="text-white text-left bg-transparent border-none outline-none cursor-pointer">Raise Capital</button>
+                    <button onClick={onScrollSecondaryMarket} className="text-white text-left bg-transparent border-none outline-none cursor-pointer">Secondary Market</button>
                   </>
                 )}
 
