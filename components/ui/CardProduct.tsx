@@ -76,13 +76,15 @@ export const CardProduct: React.FC<CardProductProps> = ({
                     </span>
                 </div>
 
-                {buttonText && (
-                    <button onClick={handleClick} className="mt-2 px-4 py-2 bg-white text-black text-sm rounded-md flex items-center gap-2 w-max hover:bg-gray-200">
-                        {iconPosition === "left" && buttonIcon}
-                        <span>{buttonText}</span>
-                        {iconPosition === "right" && buttonIcon}
-                    </button>
-                )}
+                <div className="flex justify-end items-end">
+                    {buttonText && (
+                        <button onClick={handleClick} className="mt-2 px-4 py-2 bg-white text-black text-sm flex items-center gap-2 w-max hover:bg-gray-200">
+                            {iconPosition === "left" && buttonIcon}
+                            <span>{buttonText}</span>
+                            {iconPosition === "right" && buttonIcon}
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
