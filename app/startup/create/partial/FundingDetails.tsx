@@ -258,10 +258,10 @@ export default function FundingDetails({
 }: StepComponentProps) {
   // Initial values from form data or defaults
   const initialValues: FundingDetailsFormValues = {
-    fundingGoal: formData?.fundingGoal || 0,
-    minimumFunding: formData?.minimumFunding || 0,
-    companyValuation: formData?.companyValuation || 0,
-    minInvestment: formData?.minInvestment || 0,
+    fundingGoal: (formData?.fundingGoal || 0) * 100,
+    minimumFunding: (formData?.minimumFunding || 0) * 100,
+    companyValuation: (formData?.companyValuation || 0) * 100,
+    minInvestment: (formData?.minInvestment || 0) * 100,
     expectedROI: formData?.expectedROI || "",
     riskLevel: formData?.riskLevel || "Medium",
     useOfFunds:
