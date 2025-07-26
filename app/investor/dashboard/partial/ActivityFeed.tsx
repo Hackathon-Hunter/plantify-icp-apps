@@ -98,7 +98,7 @@ export default function ActivityFeed({
             </div>
             <div className="text-red-500 flex items-center w-fit">
               <Minus size={15} />
-              <span>${formatIcpAmount(investment.amount)}</span>
+              <span>${investment.amount}</span>
             </div>
           </div>
         ))}
