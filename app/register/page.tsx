@@ -20,7 +20,7 @@ export default function Register() {
       <div className="relative z-10">
         <Navbar />
 
-        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 bg-neutral-950">
+        <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24">
           <div className="flex justify-center">
             <Breadcrumbs segments={[{ label: "Back to Home" }]} />
           </div>
