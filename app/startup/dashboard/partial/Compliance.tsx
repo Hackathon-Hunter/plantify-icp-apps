@@ -1,12 +1,17 @@
 "use client"
 
 import React from "react";
+import { Project } from "@/service/declarations/plantify-backend.did";
 
 import {
     CircleCheckBig
 } from "lucide-react";
 
-export default function Compliance() {
+interface ComplianceProps {
+    project?: Project;
+}
+
+export default function Compliance({ project: _project }: ComplianceProps) {
     return (
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">

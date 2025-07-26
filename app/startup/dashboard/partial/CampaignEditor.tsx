@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react";
+import { Project } from "@/service/declarations/plantify-backend.did";
 
 import { Button } from "@/components/ui/button";
 import { UploadFileButton } from '@/components/ui/UploadFileButton';
@@ -10,7 +11,11 @@ import {
     SquarePen
 } from "lucide-react";
 
-export default function Overview() {
+interface CampaignEditorProps {
+    project?: Project;
+}
+
+export default function CampaignEditor({ project }: CampaignEditorProps) {
     const [openModal, setOpenModal] = useState(false);
 
     return (
@@ -35,19 +40,19 @@ export default function Overview() {
                         <div className="flex flex-col gap-1">
                             <span className="text-white">Problem</span>
                             <small className="text-neutral-500">
-                                Traditional language learning apps use a one-size-fits-all approach
+                                {project?.problem || "No problem description available"}
                             </small>
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-white">Solution</span>
                             <small className="text-neutral-500">
-                                LinguaLearn uses advanced AI to create personalized learning path
+                                {project?.solution || "No solution description available"}
                             </small>
                         </div>
                         <div className="flex flex-col gap-1">
-                            <span className="text-white">Problem</span>
+                            <span className="text-white">Market Opportunity</span>
                             <small className="text-neutral-500">
-                                Traditional language learning apps use a one-size-fits-all approach
+                                {project?.marketOpportunity || "No market opportunity description available"}
                             </small>
                         </div>
                     </div>
@@ -57,20 +62,38 @@ export default function Overview() {
                     <span className="text-xl text-white">Use of Funds</span>
                     <div className="border-2 border-dashed border-neutral-600"></div>
 
-                    {["Product Development", "Marketing", "Team Expansion", "Operations"].map((item, idx) => (
-                        <div className="flex flex-col gap-2" key={idx}>
-                            <div className="flex justify-between">
-                                <span className="text-white font-semibold">{item}</span>
-                                <span className="text-white">50%</span>
+                    {project && project.useOfFunds && project.useOfFunds.length > 0 ? (
+                        project.useOfFunds.map((fund, idx) => (
+                            <div className="flex flex-col gap-2" key={idx}>
+                                <div className="flex justify-between">
+                                    <span className="text-white font-semibold">{fund.category}</span>
+                                    <span className="text-white">{fund.percentage}%</span>
+                                </div>
+                                <div className="w-full h-2 bg-neutral-500 mt-2">
+                                    <div
+                                        className="h-full bg-white"
+                                        style={{ width: `${fund.percentage}%` }}
+                                    />
+                                </div>
+                                <small className="text-neutral-500">{fund.description}</small>
                             </div>
-                            <div className="w-full h-2 bg-neutral-500 mt-2">
-                                <div
-                                    className="h-full bg-white"
-                                    style={{ width: `${(85000 / 150000) * 100}%` }}
-                                />
+                        ))
+                    ) : (
+                        ["Product Development", "Marketing", "Team Expansion", "Operations"].map((item, idx) => (
+                            <div className="flex flex-col gap-2" key={idx}>
+                                <div className="flex justify-between">
+                                    <span className="text-white font-semibold">{item}</span>
+                                    <span className="text-white">25%</span>
+                                </div>
+                                <div className="w-full h-2 bg-neutral-500 mt-2">
+                                    <div
+                                        className="h-full bg-white"
+                                        style={{ width: "25%" }}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
 
                     <div className="border-2 border-dashed border-neutral-600 mt-2"></div>
                     <div className="flex justify-between">

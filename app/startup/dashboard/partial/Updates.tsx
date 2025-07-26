@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react";
+import { Project } from "@/service/declarations/plantify-backend.did";
 
 import { Button } from "@/components/ui/button";
 
@@ -12,7 +13,11 @@ import {
     SquarePen
 } from "lucide-react";
 
-export default function Updates() {
+interface UpdatesProps {
+    project?: Project;
+}
+
+export default function Updates({ project }: UpdatesProps) {
     const [openModal, setOpenModal] = useState(false);
 
     return (
@@ -37,7 +42,7 @@ export default function Updates() {
                     milestones, and company news.
                 </p>
                 <p className="text-yellow-300">
-                    Update will be sent to all 127 investor via email and shown in their dashboard
+                    Update will be sent to all {project?.investorCount.toString() || "0"} investor{(project?.investorCount || 0) !== BigInt(1) ? "s" : ""} via email and shown in their dashboard
                 </p>
             </div>
 
