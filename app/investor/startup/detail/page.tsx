@@ -158,29 +158,27 @@ const StartUpDetails = () => {
                       {/* === Overview Component === */}
                       {activeTab === "Overview" && (
                         <div
-                          className="text-gray-400"
+                          className="text-gray-400 break-words whitespace-pre-line w-full max-w-xl px-4 sm:px-6"
                           dangerouslySetInnerHTML={{
                             __html: `<span class='text-white'>The Problem</span><br/>${project.problem}`,
                           }}
                         />
                       )}
 
-                      {/* === Financials Component === */}
                       {activeTab === "Financials" && (
                         <div
-                          className="text-gray-400"
+                          className="text-gray-400 break-words whitespace-pre-line w-full max-w-xl px-4 sm:px-6"
                           dangerouslySetInnerHTML={{
                             __html: `<span class='text-white'>Financial Goal</span><br/>Goal: $${Number(project.fundingGoal) / 1e8
-                              }<br/>Raised: $${Number(project.fundingRaised) / 1e8
-                              }`,
+                              }<br/>Raised: $${Number(project.fundingRaised) / 1e8}`,
                           }}
                         />
                       )}
 
-                      {/* === Updates Component === */}
+
                       {activeTab === "Updates" && (
                         <div
-                          className="text-gray-400"
+                          className="text-gray-400 break-words whitespace-pre-line w-[600px]"
                           dangerouslySetInnerHTML={{
                             __html: `<span class='text-white'>Latest Updates</span><br/>No updates yet.`,
                           }}
