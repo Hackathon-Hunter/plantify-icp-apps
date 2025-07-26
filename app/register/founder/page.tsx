@@ -270,7 +270,7 @@ export default function RegisterFounder(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <section className="relative flex flex-col gap-4 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-44 2xl:px-24 pt-20 sm:pt-32 md:pt-24 pb-16 md:pb-24 max-w-5xl mx-auto">
